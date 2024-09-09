@@ -9,6 +9,7 @@ LOGGER = logging.getLogger(__name__)
 
 async def setup(context: InjectionContext):
     """Set up default resolvers."""
+    LOGGER.info("ASIA UDALO SIE URA URA URA URA URA URA URA URA URA")
     registry = context.inject_or(AnonCredsRegistry)
     if not registry:
         LOGGER.error("No AnonCredsRegistry instance found in context!!!")

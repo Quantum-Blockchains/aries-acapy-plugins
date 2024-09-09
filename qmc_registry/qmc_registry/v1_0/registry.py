@@ -40,10 +40,11 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
 
     async def setup(self, context: InjectionContext):
         """Setup."""
-        print("Successfully registered DIDIndyRegistry")
+        print("Successfully registered QMCRegistry")
 
     async def get_schema(self, profile: Profile, schema_id: str) -> GetSchemaResult:
         """Get a schema from the registry."""
+        LOGGER.info("QMCREGISTRY : get schema ")
         raise NotImplementedError()
 
     async def register_schema(
@@ -53,6 +54,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             options: Optional[dict] = None,
     ) -> SchemaResult:
         """Register a schema on the registry."""
+        LOGGER.info("QMCREGISTRY : register schema ")
         raise NotImplementedError()
 
     async def get_credential_definition(
