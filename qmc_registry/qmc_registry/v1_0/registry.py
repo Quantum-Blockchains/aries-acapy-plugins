@@ -30,7 +30,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         TODO: update this docstring - Anoncreds-break.
 
         """
-        self._supported_identifiers_regex = re.compile(r"^did:indy:.*$")
+        self._supported_identifiers_regex = re.compile(r"^did:qmc.*$")
 
     @property
     def supported_identifiers_regex(self) -> Pattern:
