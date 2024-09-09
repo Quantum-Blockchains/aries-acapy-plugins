@@ -16,7 +16,7 @@ async def setup(context: InjectionContext):
         return
 
     qmc_registry = ClassProvider(
-        "v1.0.registry.QmcRegistry",
+        "registry.QmcRegistry",
         # supported_identifiers=[],
         # method_name="did:indy",
     ).provide(context.settings, context.injector)
