@@ -18,7 +18,7 @@ from aries_cloudagent.anoncreds.models.anoncreds_revocation import (
     RevRegDefResult,
 )
 
-from aries_cloudagent.models.anoncreds_schema import AnonCredsSchema, GetSchemaResult, SchemaResult
+from aries_cloudagent.anoncreds.models.anoncreds_schema import AnonCredsSchema, GetSchemaResult, SchemaResult
 
 LOGGER = logging.getLogger(__name__)
 
