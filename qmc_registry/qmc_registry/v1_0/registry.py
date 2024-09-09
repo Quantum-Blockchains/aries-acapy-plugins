@@ -9,7 +9,7 @@ from aries_cloudagent.anoncreds.models.anoncreds_cred_def import (
     CredDefResult,
     GetCredDefResult,
 )
-from aries_cloudagent.models.anoncreds_revocation import (
+from aries_cloudagent.anoncreds.models.anoncreds_revocation import (
     GetRevListResult,
     GetRevRegDefResult,
     RevList,
