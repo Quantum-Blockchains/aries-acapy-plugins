@@ -15,11 +15,12 @@ async def setup(context: InjectionContext):
     if not registry:
         LOGGER.error("No AnonCredsRegistry instance found in context!!!")
         return
-
+    qmc_registry = QmcRegistry()
     # qmc_registry = ClassProvider(
     #     "qmc_registry.registry.QmcRegistry",
     #     # supported_identifiers=[],
     #     # method_name="did:indy",
     # ).provide(context.settings, context.injector)
     # await qmc_registry.setup(context)
-    registry.register(QmcRegistry())
+    await qmc_registry.setup(context)
+    registry.register(qmc_registry)
