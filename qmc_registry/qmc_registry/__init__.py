@@ -2,7 +2,7 @@ import logging
 
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.config.provider import ClassProvider
-from aries_cloudagent.registry import AnonCredsRegistry
+from aries_cloudagent.anoncreds.registry import AnonCredsRegistry
 
 LOGGER = logging.getLogger(__name__)
 
