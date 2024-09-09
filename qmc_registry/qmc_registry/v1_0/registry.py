@@ -4,7 +4,7 @@ from typing import Optional, Pattern, Sequence
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.profile import Profile
 from aries_cloudagent.anoncreds.base import BaseAnonCredsResolver, BaseAnonCredsRegistrar
-from aries_cloudagent.models.anoncreds_cred_def import (
+from aries_cloudagent.anoncreds.models.anoncreds_cred_def import (
     CredDef,
     CredDefResult,
     GetCredDefResult,
