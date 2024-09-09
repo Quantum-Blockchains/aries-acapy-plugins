@@ -1,0 +1,30 @@
+label: qmc_registry
+
+admin: [0.0.0.0, 3001]
+admin-insecure-mode: true
+
+inbound-transport:
+  - [http, 0.0.0.0, 3000]
+  - [ws, 0.0.0.0, 3002]
+outbound-transport: http
+endpoint:
+  - http://host.docker.internal:3000
+
+plugin:
+  - qmc_registry.v1_0
+
+genesis-url: http://172.16.0.106:9000/genesis
+
+wallet-type: indy
+wallet-name: issuerwallet
+wallet-key: issuerkey
+
+log-level: info
+
+auto-provision: true
+auto-accept-invites: true
+auto-accept-requests: true
+auto-respond-messages: true
+auto-ping-connection: true
+
+seed: test100000000000000000000000000
