@@ -24,7 +24,7 @@ import requests
 
 LOGGER = logging.getLogger(__name__)
 
-URL = "http://192.168.8.106:5002"
+URL = "http://192.168.222.253:5002"
 
 class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     def __init__(self):
