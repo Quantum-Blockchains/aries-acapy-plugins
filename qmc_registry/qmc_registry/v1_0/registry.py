@@ -51,7 +51,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         LOGGER.info("Get schema ")
         get_shema_url = f'{URL}/shemas/{schema_id}'
         responce = requests.get(get_shema_url)
-        responce_body = get_shema_url.json()
+        responce_body = responce.json()
 
         LOGGER.info(f'RESPONCE: {responce_body}')
 
