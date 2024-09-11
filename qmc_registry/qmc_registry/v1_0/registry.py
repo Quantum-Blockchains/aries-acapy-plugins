@@ -20,7 +20,11 @@ from aries_cloudagent.anoncreds.models.anoncreds_revocation import (
 
 from aries_cloudagent.anoncreds.models.anoncreds_schema import AnonCredsSchema, GetSchemaResult, SchemaResult
 
+import requests
+
 LOGGER = logging.getLogger(__name__)
+
+URL = "http://192.168.222.253:5002"
 
 class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     def __init__(self):
@@ -44,8 +48,27 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
 
     async def get_schema(self, profile: Profile, schema_id: str) -> GetSchemaResult:
         """Get a schema from the registry."""
-        LOGGER.info("QMCREGISTRY : get schema ")
-        raise NotImplementedError()
+        LOGGER.info("Get schema ")
+        get_shema_url = f'{URL}/shemas/{schema_id}'
+        responce = requests.get(get_shema_url)
+        responce_body = get_shema_url.json()
+
+        LOGGER.info(f'RESPONCE: {responce_body}')
+
+        anonscreds_schema = AnonCredsSchema(
+            issuer_id="id1",
+            attr_names=["1", "2"],
+            name="shema1",
+            version="1.0",
+        )
+        result = GetSchemaResult(
+            schema=anonscreds_schema,
+            schema_id="id1",
+            resolution_metadata={"ledger_id": ""},
+            schema_metadata={"seqNo": ""},
+        )
+
+        return result
 
     async def register_schema(
             self,
