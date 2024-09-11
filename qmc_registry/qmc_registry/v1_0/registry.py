@@ -49,7 +49,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     async def get_schema(self, profile: Profile, schema_id: str) -> GetSchemaResult:
         """Get a schema from the registry."""
         LOGGER.info("Get schema ")
-        get_shema_url = f'{URL}/shemas/{schema_id}'
+        get_shema_url = f'{URL}/schemas/{schema_id}'
         LOGGER.info(f'URL: {get_shema_url}')
         responce = requests.get(get_shema_url)
         responce_body = responce.json()
