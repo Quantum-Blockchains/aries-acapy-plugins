@@ -18,6 +18,13 @@ from aries_cloudagent.anoncreds.models.anoncreds_revocation import (
     RevRegDefResult,
 )
 
+from aries_cloudagent.anoncreds.models.anoncreds_schema import (
+    AnonCredsSchema,
+    GetSchemaResult,
+    SchemaResult,
+    SchemaState,
+)
+
 from aries_cloudagent.anoncreds.models.anoncreds_schema import AnonCredsSchema, GetSchemaResult, SchemaResult
 
 import requests
@@ -45,6 +52,11 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     async def setup(self, context: InjectionContext):
         """Setup."""
         print("Successfully registered QMCRegistry")
+
+    @staticmethod
+    def make_schema_id(schema: AnonCredsSchema) -> str:
+        """Derive the ID for a schema."""
+        return f"{schema.issuer_id}:2:{schema.name}:{schema.version}"
 
     async def get_schema(self, profile: Profile, schema_id: str) -> GetSchemaResult:
         """Get a schema from the registry."""
@@ -79,7 +91,34 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     ) -> SchemaResult:
         """Register a schema on the registry."""
         LOGGER.info("QMCREGISTRY : register schema ")
-        raise NotImplementedError()
+
+        LOGGER.info("Set schema ")
+        get_shema_url = f'{URL}/schemas'
+        LOGGER.info(f'URL: {get_shema_url}')
+
+        schema_id = self.make_schema_id(schema)
+
+        data = {
+            "issuer_id": schema.issuer_id,
+            "schema_id": schema_id,
+            "attr_names": schema.attr_names,
+            "version": schema.version,
+            "name": schema.name,
+        }
+
+        responce = requests.get(get_shema_url)
+
+        return SchemaResult(
+                job_id=None,
+                schema_state=SchemaState(
+                    state=SchemaState.STATE_FINISHED,
+                    schema_id=schema_id,
+                    schema=schema,
+                ),
+                registration_metadata={},
+                schema_metadata={},
+            )
+    
 
     async def get_credential_definition(
             self, profile: Profile, credential_definition_id: str
