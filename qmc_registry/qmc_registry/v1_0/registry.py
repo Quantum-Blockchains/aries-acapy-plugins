@@ -119,12 +119,12 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         responce = requests.get(get_shema_url)
 
         if responce.status_code != 200:
-            raise AnonCredsRegistrationError("Failed to register schema") from err 
+            raise AnonCredsRegistrationError("Failed to register schema") 
 
         response_body = responce.json()
 
         if response_body["error"] == True:
-            raise AnonCredsRegistrationError(f"Failed to register schema. {response_body["message_error"]}") from err 
+            raise AnonCredsRegistrationError(f"Failed to register schema. {response_body["message_error"]}") 
 
         LOGGER.info(f'FINISHED! extrinsic_hash: {response_body["extrinsic_hash"]}, block_hash: {response_body["block_hash"]}')
 
