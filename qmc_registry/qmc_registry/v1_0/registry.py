@@ -18,6 +18,16 @@ from aries_cloudagent.anoncreds.models.anoncreds_revocation import (
     RevRegDefResult,
 )
 
+from aries_cloudagent.anoncreds.base import (
+    AnonCredsObjectAlreadyExists,
+    AnonCredsObjectNotFound,
+    AnonCredsRegistrationError,
+    AnonCredsResolutionError,
+    AnonCredsSchemaAlreadyExists,
+    BaseAnonCredsRegistrar,
+    BaseAnonCredsResolver,
+)
+
 from aries_cloudagent.anoncreds.models.anoncreds_schema import (
     AnonCredsSchema,
     GetSchemaResult,
@@ -107,6 +117,16 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         }
 
         responce = requests.get(get_shema_url)
+
+        if responce.status_code != 200:
+            raise AnonCredsRegistrationError("Failed to register schema") from err 
+
+        response_body = responce.json()
+
+        if response_body["error"] == True:
+            raise AnonCredsRegistrationError(f"Failed to register schema. {response_body["message_error"]}") from err 
+
+        LOGGER.info(f'FINISHED! extrinsic_hash: {response_body["extrinsic_hash"]}, block_hash: {response_body["block_hash"]}')
 
         return SchemaResult(
                 job_id=None,
