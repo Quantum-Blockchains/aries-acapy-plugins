@@ -1,6 +1,7 @@
 import logging
 import re
 from typing import Optional, Pattern, Sequence
+import json
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.profile import Profile
 from aries_cloudagent.anoncreds.base import BaseAnonCredsResolver, BaseAnonCredsRegistrar
@@ -116,7 +117,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             "name": schema.name,
         }
         print(data)
-        responce = requests.post(url=get_shema_url, data=data)
+        responce = requests.post(url=get_shema_url, json=data)
 
         if responce.status_code != 200:
             raise AnonCredsRegistrationError("Failed to register schema") 
