@@ -79,7 +79,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
 
         LOGGER.info(f'RESPONCE: {responce_body}')
 
-        if responce_body["schema"] == None:
+        if responce_body["schema"] == {}:
             raise AnonCredsObjectNotFound(
                         f"Schema not found: {schema_id}"
                     )
