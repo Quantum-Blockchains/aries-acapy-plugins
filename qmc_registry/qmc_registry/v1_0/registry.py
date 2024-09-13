@@ -116,7 +116,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             "name": schema.name,
         }
 
-        responce = requests.get(get_shema_url)
+        responce = requests.post(get_shema_url, data)
 
         if responce.status_code != 200:
             raise AnonCredsRegistrationError("Failed to register schema") 
