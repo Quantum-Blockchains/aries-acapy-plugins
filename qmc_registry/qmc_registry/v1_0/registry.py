@@ -72,22 +72,27 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     async def get_schema(self, profile: Profile, schema_id: str) -> GetSchemaResult:
         """Get a schema from the registry."""
         LOGGER.info("Get schema ")
-        get_shema_url = f'{URL}/schemas/{schema_id}'
+        get_shema_url = f'{URL}/schemas/{[schema_id[8:]]}'
         LOGGER.info(f'URL: {get_shema_url}')
         responce = requests.get(get_shema_url)
         responce_body = responce.json()
 
         LOGGER.info(f'RESPONCE: {responce_body}')
 
+        if responce_body["schema"] == None:
+            raise AnonCredsObjectNotFound(
+                        f"Schema not found: {schema_id}"
+                    )
+
         anonscreds_schema = AnonCredsSchema(
-            issuer_id="id1",
-            attr_names=["1", "2"],
-            name="shema1",
-            version="1.0",
+            issuer_id=responce_body["schema"]["issuer_id"],
+            attr_names=responce_body["schema"]["attr_names"],
+            name=responce_body["schema"]["name"],
+            version=responce_body["schema"]["version"],
         )
         result = GetSchemaResult(
             schema=anonscreds_schema,
-            schema_id="id1",
+            schema_id=responce_body["schema"]["schema_id"],
             resolution_metadata={"ledger_id": ""},
             schema_metadata={"seqNo": ""},
         )
