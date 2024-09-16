@@ -42,7 +42,7 @@ import requests
 
 LOGGER = logging.getLogger(__name__)
 
-URL = "http://192.168.222.253:5002"
+URL = "http://192.168.65.253:5002"
 
 class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     def __init__(self):
@@ -72,7 +72,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     async def get_schema(self, profile: Profile, schema_id: str) -> GetSchemaResult:
         """Get a schema from the registry."""
         LOGGER.info("Get schema ")
-        get_shema_url = f'{URL}/schemas/{schema_id[8:]}'
+        get_shema_url = f'{URL}/schema/{schema_id[8:]}'
         LOGGER.info(f'URL: {get_shema_url}')
         responce = requests.get(get_shema_url)
         responce_body = responce.json()
@@ -109,7 +109,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         LOGGER.info("QMCREGISTRY : register schema ")
 
         LOGGER.info("Set schema ")
-        get_shema_url = f'{URL}/schemas'
+        get_shema_url = f'{URL}/schema'
         LOGGER.info(f'URL: {get_shema_url}')
 
         schema_id = self.make_schema_id(schema)
@@ -145,7 +145,6 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
                 schema_metadata={},
             )
     
-
     async def get_credential_definition(
             self, profile: Profile, credential_definition_id: str
     ) -> GetCredDefResult:
