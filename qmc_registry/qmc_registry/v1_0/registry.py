@@ -42,7 +42,7 @@ from aries_cloudagent.anoncreds.models.anoncreds_cred_def import ( # type: ignor
     CredDefValue,
     GetCredDefResult,
 )
-from ...models.anoncreds_cred_def import ( # type: ignore
+from aries_cloudagent.anoncreds.models.anoncreds_cred_def import ( # type: ignore
     CredDef,
     CredDefResult,
     CredDefState,
@@ -51,7 +51,7 @@ from ...models.anoncreds_cred_def import ( # type: ignore
 )
 
 from aries_cloudagent.anoncreds.models.anoncreds_schema import AnonCredsSchema, GetSchemaResult, SchemaResult  # type: ignore
-from ...issuer import CATEGORY_CRED_DEF, AnonCredsIssuer, AnonCredsIssuerError # type: ignore
+from aries_cloudagent.anoncreds.issuer import CATEGORY_CRED_DEF, AnonCredsIssuer, AnonCredsIssuerError # type: ignore
 import requests
 
 LOGGER = logging.getLogger(__name__)
