@@ -154,7 +154,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             "ver": "1.0"
         }
         print(data)
-        responce = requests.post(url=get_shema_url, json=data)
+        responce = requests.post(url=get_shema_url, json={"schema": data})
 
         if responce.status_code != 200:
             raise AnonCredsRegistrationError("Failed to register schema") 
@@ -198,15 +198,15 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
 
         cred_def_value = CredDefValue.deserialize(cred_def["value"])
         anoncreds_credential_definition = CredDef(
-            issuer_id=cred_def["id"].split(":")[0],
-            schema_id=cred_def["schemaId"],
+            issuer_id=DID+cred_def["id"].split(":")[0],
+            schema_id=DID+cred_def["schemaId"],
             type=cred_def["type"],
             tag=cred_def["tag"],
             value=cred_def_value,
         )
         anoncreds_registry_get_credential_definition = GetCredDefResult(
             credential_definition=anoncreds_credential_definition,
-            credential_definition_id=cred_def["id"],
+            credential_definition_id=DID+cred_def["id"],
             resolution_metadata={},
             credential_definition_metadata={},
         )
@@ -238,8 +238,8 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         # Translate anoncreds object to indy object
         LOGGER.debug("Registering credential definition: %s", cred_def_id)
         qmc_cred_def = {
-            "id": cred_def_id,
-            "schema_id": str(schema.schema_id),
+            "id": cred_def_id[8:],
+            "schema_id": str(schema.schema_id[8:]),
             "tag": credential_definition.tag,
             "type": credential_definition.type,
             "value": credential_definition.value.serialize(),
@@ -252,13 +252,13 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         get_shema_url = f'{URL}/credential-definition'
         LOGGER.info("Cred def url: %s", get_shema_url)
         print(qmc_cred_def)
-        responce = requests.post(url=get_shema_url, json=qmc_cred_def)
-        LOGGER.info("Cred def responce: %s", responce)
+        responce = requests.post(url=get_shema_url, json={"cred_def": qmc_cred_def})
+
         if responce.status_code != 200:
             raise AnonCredsRegistrationError("Failed to register credential definition.") 
 
         response_body = responce.json()
-        LOGGER.info("Cred def body: %s", response_body)
+        LOGGER.info("Cred def url: %s", response_body)
         if response_body["error"] == True:
             raise AnonCredsRegistrationError(f"Failed to register credential definition. {response_body["message_error"]}") 
 
