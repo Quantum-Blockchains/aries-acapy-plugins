@@ -146,11 +146,11 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         schema_id = self.make_schema_id(schema)
 
         data = {
-            "issuer_id": schema.issuer_id[8:],
             "schema_id": schema_id[8:],
+            "issuer_id": schema.issuer_id[8:],
             "attr_names": schema.attr_names,
-            "version": schema.version,
             "name": schema.name,
+            "version": schema.version,
             "ver": "1.0"
         }
         print(data)
