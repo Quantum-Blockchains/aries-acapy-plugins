@@ -241,7 +241,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             "cred_def_id": cred_def_id[8:],
             "schema_id": str(schema.schema_id[8:]),
             "tag": credential_definition.tag,
-            "type": credential_definition.type,
+            "ttype": credential_definition.type,
             "value": credential_definition.value.serialize(),
             "ver": "1.0",
         }
