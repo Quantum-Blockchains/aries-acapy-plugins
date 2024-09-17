@@ -220,7 +220,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             options: Optional[dict] = None,
     ) -> CredDefResult:
         """Register a credential definition on the registry."""
-
+        LOGGER.info("Register a credential definition ")
         options = options or {}
         cred_def_id = self.make_cred_def_id(schema, credential_definition)
 
@@ -247,16 +247,18 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         }
         LOGGER.debug("Cred def value: %s", qmc_cred_def)
 
+        LOGGER.info("Cred def value: %s", qmc_cred_def)
         
         get_shema_url = f'{URL}/credential-definition'
+        LOGGER.info("Cred def url: %s", get_shema_url)
         print(qmc_cred_def)
         responce = requests.post(url=get_shema_url, json=qmc_cred_def)
-
+        LOGGER.info("Cred def responce: %s", responce)
         if responce.status_code != 200:
             raise AnonCredsRegistrationError("Failed to register credential definition.") 
 
         response_body = responce.json()
-
+        LOGGER.info("Cred def body: %s", response_body)
         if response_body["error"] == True:
             raise AnonCredsRegistrationError(f"Failed to register credential definition. {response_body["message_error"]}") 
 
