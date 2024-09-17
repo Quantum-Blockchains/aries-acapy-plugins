@@ -238,7 +238,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         # Translate anoncreds object to indy object
         LOGGER.debug("Registering credential definition: %s", cred_def_id)
         qmc_cred_def = {
-            "id": cred_def_id[8:],
+            "cred_def_id": cred_def_id[8:],
             "schema_id": str(schema.schema_id[8:]),
             "tag": credential_definition.tag,
             "type": credential_definition.type,
