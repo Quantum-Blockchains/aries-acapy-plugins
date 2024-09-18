@@ -100,6 +100,14 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
 
         return f"{cred_def.issuer_id}:3:{signature_type}:{tag}"
 
+    @staticmethod
+    def make_rev_reg_def_id(rev_reg_def: RevRegDef) -> str:
+        """Derive the ID for a revocation registry definition."""
+        return (
+            f"{rev_reg_def.issuer_id}:4:{rev_reg_def.cred_def_id}:"
+            f"{rev_reg_def.type}:{rev_reg_def.tag}"
+        )
+
     async def get_schema(self, profile: Profile, schema_id: str) -> GetSchemaResult:
         """Get a schema from the registry."""
         LOGGER.info("Get schema ")
@@ -288,6 +296,28 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             options: Optional[dict] = None,
     ) -> RevRegDefResult:
         """Register a revocation registry definition on the registry."""
+        
+        options = options or {}
+        rev_reg_def_id = self.make_rev_reg_def_id(revocation_registry_definition)
+        
+        qmc_rev_reg_def = {
+            "ver": "1.0",
+            "id": rev_reg_def_id,
+            "revocDefType": revocation_registry_definition.type,
+            "credDefId": revocation_registry_definition.cred_def_id,
+            "tag": revocation_registry_definition.tag,
+            "value": {
+                "issuanceType": "ISSUANCE_BY_DEFAULT",
+                "maxCredNum": revocation_registry_definition.value.max_cred_num,
+                "publicKeys": revocation_registry_definition.value.public_keys,
+                "tailsHash": revocation_registry_definition.value.tails_hash,
+                "tailsLocation": revocation_registry_definition.value.tails_location,
+            },
+        }
+        
+        print(f'DATA: {qmc_rev_reg_def}')
+        
+        
         raise NotImplementedError()
 
     async def get_revocation_list(
