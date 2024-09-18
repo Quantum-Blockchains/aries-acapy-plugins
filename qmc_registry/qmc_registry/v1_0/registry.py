@@ -49,6 +49,17 @@ from aries_cloudagent.anoncreds.models.anoncreds_cred_def import ( # type: ignor
     CredDefValue,
     GetCredDefResult,
 )
+from aries_cloudagent.anoncreds.models.anoncreds_revocation import ( # type: ignore
+    GetRevListResult,
+    GetRevRegDefResult,
+    RevList,
+    RevListResult,
+    RevListState,
+    RevRegDef,
+    RevRegDefResult,
+    RevRegDefState,
+    RevRegDefValue,
+)
 
 from aries_cloudagent.anoncreds.models.anoncreds_schema import AnonCredsSchema, GetSchemaResult, SchemaResult  # type: ignore
 from aries_cloudagent.anoncreds.issuer import CATEGORY_CRED_DEF, AnonCredsIssuer, AnonCredsIssuerError # type: ignore
@@ -254,11 +265,8 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             "ver": "1.0",
         }
         LOGGER.debug("Cred def value: %s", qmc_cred_def)
-
-        LOGGER.info("Cred def value: %s", qmc_cred_def)
         
         get_shema_url = f'{URL}/credential-definition'
-        LOGGER.info("Cred def url: %s", get_shema_url)
         print(qmc_cred_def)
         responce = requests.post(url=get_shema_url, json={"cred_def": qmc_cred_def})
 
@@ -287,7 +295,35 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             self, profile: Profile, revocation_registry_id: str
     ) -> GetRevRegDefResult:
         """Get a revocation registry definition from the registry."""
-        raise NotImplementedError()
+        LOGGER.info("Get credential definition ")
+        get_rev_reg_def_url = f'{URL}/credential-definition/{revocation_registry_id[8:]}'
+        responce = requests.get(get_rev_reg_def_url)
+        responce_body = responce.json()
+
+        if responce_body["revocation-registry-definition"] == {}:
+            raise AnonCredsObjectNotFound(
+                        f"Revocation registry definition not found: {revocation_registry_id}"
+                )
+
+        rev_reg_def = responce_body["revocation-registry-definition"]
+
+        LOGGER.debug("Retrieved revocation registry definition: %s", rev_reg_def)
+        rev_reg_def_value = RevRegDefValue.deserialize(rev_reg_def["value"])
+        anoncreds_rev_reg_def = RevRegDef(
+            issuer_id=DID+rev_reg_def["rev_reg_def_id"].split(":")[0],
+            cred_def_id=rev_reg_def["cred_def_id"],
+            type=rev_reg_def["rev_reg_def_type"],
+            value=rev_reg_def_value,
+            tag=rev_reg_def["tag"],
+        )
+        result = GetRevRegDefResult(
+            revocation_registry=anoncreds_rev_reg_def,
+            revocation_registry_id=rev_reg_def["rev_reg_def_id"],
+            resolution_metadata={},
+            revocation_registry_metadata={},
+        )
+
+        return result
 
     async def register_revocation_registry_definition(
             self,
@@ -301,22 +337,55 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         rev_reg_def_id = self.make_rev_reg_def_id(revocation_registry_definition)
         
         qmc_rev_reg_def = {
-            "ver": "1.0",
-            "id": rev_reg_def_id,
-            "revocDefType": revocation_registry_definition.type,
-            "credDefId": revocation_registry_definition.cred_def_id,
+            "rev_reg_def_id": rev_reg_def_id[8:],
+            "cred_def_id": revocation_registry_definition.cred_def_id[8:],
+            "rev_reg_def_type": revocation_registry_definition.type,
             "tag": revocation_registry_definition.tag,
             "value": {
-                "issuanceType": "ISSUANCE_BY_DEFAULT",
-                "maxCredNum": revocation_registry_definition.value.max_cred_num,
-                "publicKeys": revocation_registry_definition.value.public_keys,
-                "tailsHash": revocation_registry_definition.value.tails_hash,
-                "tailsLocation": revocation_registry_definition.value.tails_location,
+                "issuance_type": "ISSUANCE_BY_DEFAULT",
+                "public_keys": revocation_registry_definition.value.public_keys,
+                "max_cred_num": revocation_registry_definition.value.max_cred_num,
+                "tails_location": revocation_registry_definition.value.tails_location,
+                "tails_hash": revocation_registry_definition.value.tails_hash
             },
+            "ver": "1.0"
         }
         
-        print(f'DATA: {qmc_rev_reg_def}')
+        registry_rev_reg_def_url = f'{URL}/revocation-registry-definition'
+        responce = requests.post(url=registry_rev_reg_def_url, json={"rev_reg_def": qmc_rev_reg_def})
+
+        if responce.status_code != 200:
+            raise AnonCredsRegistrationError("Failed to register revocation registry definition.") 
+
+        response_body = responce.json()
+        if response_body["error"] == True:
+            raise AnonCredsRegistrationError(f"Failed to register revocation registry definition. {response_body["message_error"]}") 
+
+        LOGGER.info(f'FINISHED! extrinsic_hash: {response_body["extrinsic_hash"]}, block_hash: {response_body["block_hash"]}')
+
+        return RevRegDefResult(
+            job_id=None,
+            revocation_registry_definition_state=RevRegDefState(
+                state=RevRegDefState.STATE_FINISHED,
+                revocation_registry_definition_id=rev_reg_def_id,
+                revocation_registry_definition=revocation_registry_definition,
+            ),
+            registration_metadata={
+                "txn": None,
+            },
+            revocation_registry_definition_metadata={},
+        )
         
+
+
+
+       
+
+
+
+
+
+
         
         raise NotImplementedError()
 
