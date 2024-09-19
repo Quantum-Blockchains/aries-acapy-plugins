@@ -5,6 +5,7 @@ import json
 from aries_cloudagent.config.injection_context import InjectionContext # type: ignore
 from aries_cloudagent.core.profile import Profile # type: ignore
 from aries_cloudagent.anoncreds.base import BaseAnonCredsResolver, BaseAnonCredsRegistrar # type: ignore
+from aries_cloudagent.cache.base import BaseCache
 from aries_cloudagent.anoncreds.models.anoncreds_cred_def import (  # type: ignore
     CredDef,
     CredDefResult,
@@ -389,6 +390,176 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         
         raise NotImplementedError()
 
+    async def _get_or_fetch_rev_reg_def_max_cred_num(
+        self, profile: Profile, ledger: BaseLedger, rev_reg_def_id: str
+    ) -> int:
+        """Retrieve max cred num for a rev reg def.
+
+        The value is retrieved from cache or from the ledger if necessary.
+        The issuer could retrieve this value from the wallet but this info
+        must also be known to the holder.
+        """
+        cache = profile.inject(BaseCache)
+        cache_key = f"anoncreds::qmc_registry::rev_reg_max_cred_num::{rev_reg_def_id}"
+
+        if cache:
+            max_cred_num = await cache.get(cache_key)
+            if max_cred_num:
+                return max_cred_num
+
+        rev_reg_def = await ledger.get_revoc_reg_def(rev_reg_def_id)
+        max_cred_num = rev_reg_def["value"]["maxCredNum"]
+
+        if cache:
+            await cache.set(cache_key, max_cred_num)
+
+        return max_cred_num
+
+
+    async def register_credential_definition(
+        self,
+        profile: Profile,
+        schema: GetSchemaResult,
+        credential_definition: CredDef,
+        options: Optional[dict] = None,
+    ) -> CredDefResult:
+        """Register a credential definition on the registry."""
+        options = options or {}
+        cred_def_id = self.make_cred_def_id(schema, credential_definition)
+
+        ledger = profile.inject_or(BaseLedger)
+        if not ledger:
+            raise AnonCredsRegistrationError(NO_LEDGER_AVAILABLE_MSG)
+
+        # Check if in wallet but not on ledger
+        issuer = AnonCredsIssuer(profile)
+        if await issuer.credential_definition_in_wallet(cred_def_id):
+            try:
+                await self.get_credential_definition(profile, cred_def_id)
+            except AnonCredsObjectNotFound as err:
+                raise AnonCredsRegistrationError(
+                    f"Credential definition with id {cred_def_id} already "
+                    "exists in wallet but not on the ledger"
+                ) from err
+
+        # Translate anoncreds object to indy object
+        LOGGER.debug("Registering credential definition: %s", cred_def_id)
+        indy_cred_def = {
+            "id": cred_def_id,
+            "schemaId": str(schema.schema_metadata["seqNo"]),
+            "tag": credential_definition.tag,
+            "type": credential_definition.type,
+            "value": credential_definition.value.serialize(),
+            "ver": "1.0",
+        }
+        LOGGER.debug("Cred def value: %s", indy_cred_def)
+
+        endorser_did = None
+        create_transaction = options.get("create_transaction_for_endorser", False)
+
+        if is_author_role(profile) or create_transaction:
+            endorser_did, endorser_connection_id = await get_endorser_info(
+                profile, options
+            )
+
+        write_ledger = (
+            True if endorser_did is None and not create_transaction else False
+        )
+
+        async with ledger:
+            try:
+                result = await shield(
+                    ledger.send_credential_definition_anoncreds(
+                        credential_definition.schema_id,
+                        cred_def_id,
+                        indy_cred_def,
+                        write_ledger=write_ledger,
+                        endorser_did=endorser_did,
+                    )
+                )
+            except LedgerObjectAlreadyExistsError as err:
+                if await issuer.credential_definition_in_wallet(cred_def_id):
+                    raise AnonCredsObjectAlreadyExists(
+                        f"Credential definition with id {cred_def_id} "
+                        "already exists in wallet and on ledger.",
+                        cred_def_id,
+                    ) from err
+                else:
+                    raise AnonCredsObjectAlreadyExists(
+                        f"Credential definition {cred_def_id} is on "
+                        f"ledger but not in wallet {profile.name}",
+                        cred_def_id,
+                    ) from err
+
+        # Didn't need endorsement
+        if write_ledger:
+            return CredDefResult(
+                job_id=None,
+                credential_definition_state=CredDefState(
+                    state=CredDefState.STATE_FINISHED,
+                    credential_definition_id=cred_def_id,
+                    credential_definition=credential_definition,
+                ),
+                registration_metadata={},
+                credential_definition_metadata={"seqNo": result},
+            )
+
+        # Need endorsement, so execute transaction flow
+        job_id = uuid4().hex
+
+        meta_data = {
+            "context": {
+                "job_id": job_id,
+                "cred_def_id": cred_def_id,
+                "options": options,
+            },
+        }
+
+        (cred_def_id, cred_def) = result
+        transaction_manager = TransactionManager(profile)
+
+        try:
+            transaction = await transaction_manager.create_record(
+                messages_attach=cred_def["signed_txn"],
+                connection_id=endorser_connection_id,
+                meta_data=meta_data,
+            )
+        except StorageError:
+            raise AnonCredsRegistrationError(FAILED_TO_STORE_TRANSACTION_RECORD)
+
+        if profile.settings.get(ENDORSER_AUTO):
+            try:
+                (
+                    transaction,
+                    transaction_request,
+                ) = await transaction_manager.create_request(transaction=transaction)
+            except (StorageError, TransactionManagerError) as err:
+                raise AnonCredsRegistrationError(
+                    TRANSACTION_MANAGER_FAILED_MSG + err.roll_up
+                ) from err
+
+            responder = profile.inject(BaseResponder)
+            await responder.send(
+                message=transaction_request,
+                connection_id=endorser_connection_id,
+            )
+
+        return CredDefResult(
+            job_id=job_id,
+            credential_definition_state=CredDefState(
+                state=CredDefState.STATE_WAIT,
+                credential_definition_id=cred_def_id,
+                credential_definition=credential_definition,
+            ),
+            registration_metadata={
+                "txn": transaction.serialize(),
+            },
+            credential_definition_metadata={},
+        )
+
+
+
+
     async def get_revocation_list(
             self, profile: Profile, revocation_registry_id: str, timestamp: int
     ) -> GetRevListResult:
@@ -403,6 +574,13 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             options: Optional[dict] = None,
     ) -> RevListResult:
         """Register a revocation list on the registry."""
+
+        print("Register a revocation list on the registry.")
+        print("REV_RED_DEF")
+        print(rev_reg_def)        
+        print("REV_LIST")
+        print(rev_list)
+
         raise NotImplementedError()
 
     async def update_revocation_list(
