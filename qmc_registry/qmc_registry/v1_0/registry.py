@@ -115,7 +115,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     def make_rev_reg_def_id(rev_reg_def: RevRegDef) -> str:
         """Derive the ID for a revocation registry definition."""
         return (
-            f"{rev_reg_def.issuer_id}:4:{rev_reg_def.cred_def_id}:"
+            f"{rev_reg_def.issuer_id}:4:{rev_reg_def.cred_def_id[8:]}:"
             f"{rev_reg_def.type}:{rev_reg_def.tag}"
         )
 
