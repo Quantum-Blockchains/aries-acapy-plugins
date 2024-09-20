@@ -34,10 +34,15 @@ class BasicMessageStorageConfig(BaseModel):
 
 def process_config_dict(config_dict: dict) -> dict:
     """Remove any keys that are not in the config class."""
+    print(1)
     _filter = BasicMessageStorageConfig.default().model_dump().keys()
+    print(2)
     for key, value in config_dict.items():
+        print(3)
         if key in _filter:
+            print(4)
             config_dict[key] = value
+    print(5)
     return config_dict
 
 
