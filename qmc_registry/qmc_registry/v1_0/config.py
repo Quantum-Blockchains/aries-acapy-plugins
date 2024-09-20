@@ -16,8 +16,8 @@ def _alias_generator(key: str) -> str:
 class BasicMessageStorageConfig(BaseModel):
     """Configuration for the basicmessage_storage."""
 
-    host: str
-    port: int
+    host_endpoint: str
+    port_endpoint: int
 
     class Config:
         """Inner class for configuration."""
