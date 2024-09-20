@@ -16,8 +16,8 @@ def _alias_generator(key: str) -> str:
 class BasicMessageStorageConfig(BaseModel):
     """Configuration for the basicmessage_storage."""
 
-    host: str
-    port: int
+    host: str = "http://127.0.0.1"
+    port: int = 5002
 
     class Config:
         """Inner class for configuration."""
