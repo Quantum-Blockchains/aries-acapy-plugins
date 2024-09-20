@@ -364,44 +364,6 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             },
             revocation_registry_definition_metadata={},
         )
-        
-
-
-
-       
-
-
-
-
-
-
-        
-        raise NotImplementedError()
-
-    # async def _get_or_fetch_rev_reg_def_max_cred_num(
-    #     self, profile: Profile, ledger: BaseLedger, rev_reg_def_id: str
-    # ) -> int:
-    #     """Retrieve max cred num for a rev reg def.
-
-    #     The value is retrieved from cache or from the ledger if necessary.
-    #     The issuer could retrieve this value from the wallet but this info
-    #     must also be known to the holder.
-    #     """
-    #     cache = profile.inject(BaseCache)
-    #     cache_key = f"anoncreds::qmc_registry::rev_reg_max_cred_num::{rev_reg_def_id}"
-
-    #     if cache:
-    #         max_cred_num = await cache.get(cache_key)
-    #         if max_cred_num:
-    #             return max_cred_num
-
-    #     rev_reg_def = await ledger.get_revoc_reg_def(rev_reg_def_id)
-    #     max_cred_num = rev_reg_def["value"]["maxCredNum"]
-
-    #     if cache:
-    #         await cache.set(cache_key, max_cred_num)
-
-    #     return max_cred_num
 
     async def get_revocation_list(
             self, profile: Profile, revocation_registry_id: str, timestamp: int
