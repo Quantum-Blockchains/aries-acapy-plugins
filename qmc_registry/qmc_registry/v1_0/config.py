@@ -34,22 +34,17 @@ class BasicMessageStorageConfig(BaseModel):
 
 def process_config_dict(config_dict: dict) -> dict:
     """Remove any keys that are not in the config class."""
-    print(1)
     _filter = BasicMessageStorageConfig.default().model_dump().keys()
-    print(2)
     for key, value in config_dict.items():
-        print(3)
         if key in _filter:
-            print(4)
             config_dict[key] = value
-    print(5)
     return config_dict
 
 
 def get_config(settings: Mapping[str, Any]) -> BasicMessageStorageConfig:
     """Retrieve configuration from settings."""
     try:
-        LOGGER.info(
+        LOGGER.debug(
             "Constructing config from: %s",
             settings.get("plugin_config", {}).get("qmc_registry"),
         )
@@ -57,25 +52,25 @@ def get_config(settings: Mapping[str, Any]) -> BasicMessageStorageConfig:
             "qmc_registry", {}
         )
         tenant_plugin_config_dict = settings.get("qmc_registry", {})
-        LOGGER.info("Retrieved (global): %s", global_plugin_config_dict)
-        LOGGER.info("Retrieved (tenant)): %s", tenant_plugin_config_dict)
+        LOGGER.debug("Retrieved (global): %s", global_plugin_config_dict)
+        LOGGER.debug("Retrieved (tenant)): %s", tenant_plugin_config_dict)
         global_plugin_config_dict = process_config_dict(global_plugin_config_dict)
         tenant_plugin_config_dict = process_config_dict(tenant_plugin_config_dict)
-        LOGGER.info("Parsed (global): %s", global_plugin_config_dict)
-        LOGGER.info("Parsed (tenant): %s", tenant_plugin_config_dict)
+        LOGGER.debug("Parsed (global): %s", global_plugin_config_dict)
+        LOGGER.debug("Parsed (tenant): %s", tenant_plugin_config_dict)
         default_config = BasicMessageStorageConfig.default().model_dump()
-        LOGGER.info("Default Config: %s", default_config)
+        LOGGER.debug("Default Config: %s", default_config)
         config_dict = merge(
             {}, default_config, global_plugin_config_dict, tenant_plugin_config_dict
         )
-        LOGGER.info("Merged: %s", config_dict)
+        LOGGER.debug("Merged: %s", config_dict)
         config = BasicMessageStorageConfig(**config_dict)
     except KeyError:
         LOGGER.warning("Using default configuration")
         config = BasicMessageStorageConfig.default()
 
-    LOGGER.info("Returning config: %s", config.model_dump_json(indent=2))
-    LOGGER.info(
+    LOGGER.debug("Returning config: %s", config.model_dump_json(indent=2))
+    LOGGER.debug(
         "Returning config(aliases): %s", config.model_dump_json(by_alias=True, indent=2)
     )
     return config
