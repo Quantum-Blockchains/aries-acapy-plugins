@@ -122,7 +122,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     async def get_schema(self, profile: Profile, schema_id: str) -> GetSchemaResult:
         """Get a schema from the registry."""
         LOGGER.info("Get schema ")
-        get_shema_url = f'{get_config(profile.settings).host+str(get_config(profile.settings).port)}/schema/{schema_id[8:]}'
+        get_shema_url = f'{get_config(profile.settings).host + ":" + str(get_config(profile.settings).port)}/schema/{schema_id[8:]}'
         responce = requests.get(get_shema_url)
         responce_body = responce.json()
 
@@ -154,7 +154,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     ) -> SchemaResult:
         """Register a schema on the registry."""
         LOGGER.info("QMCREGISTRY : register schema ")
-        get_shema_url = f'{get_config(profile.settings).host+str(get_config(profile.settings).port)}/schema'
+        get_shema_url = f'{get_config(profile.settings).host+ ":" + str(get_config(profile.settings).port)}/schema'
         LOGGER.info(f'URL: {get_shema_url}')
 
         schema_id = self.make_schema_id(schema)
@@ -193,7 +193,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     ) -> GetCredDefResult:
         """Get a credential definition from the registry."""
         LOGGER.info("Get credential definition ")
-        get_cred_def_url = f'{get_config(profile.settings).host+str(get_config(profile.settings).port)}/credential-definition/{credential_definition_id[8:]}'
+        get_cred_def_url = f'{get_config(profile.settings).host+ ":" +str(get_config(profile.settings).port)}/credential-definition/{credential_definition_id[8:]}'
         responce = requests.get(get_cred_def_url)
         responce_body = responce.json()
 
@@ -255,7 +255,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         }
         LOGGER.debug("Cred def value: %s", qmc_cred_def)
         
-        get_shema_url = f'{get_config(profile.settings).host+str(get_config(profile.settings).port)}/credential-definition'
+        get_shema_url = f'{get_config(profile.settings).host+ ":" +str(get_config(profile.settings).port)}/credential-definition'
         print(qmc_cred_def)
         responce = requests.post(url=get_shema_url, json={"cred_def": qmc_cred_def})
 
@@ -285,7 +285,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     ) -> GetRevRegDefResult:
         """Get a revocation registry definition from the registry."""
         LOGGER.info("Get credential definition ")
-        get_rev_reg_def_url = f'{get_config(profile.settings).host+str(get_config(profile.settings).port)}/credential-definition/{revocation_registry_id[8:]}'
+        get_rev_reg_def_url = f'{get_config(profile.settings).host+ ":" +str(get_config(profile.settings).port)}/credential-definition/{revocation_registry_id[8:]}'
         responce = requests.get(get_rev_reg_def_url)
         responce_body = responce.json()
 
@@ -340,7 +340,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             "ver": "1.0"
         }
         
-        registry_rev_reg_def_url = f'{get_config(profile.settings).host+str(get_config(profile.settings).port)}/revocation-registry-definition'
+        registry_rev_reg_def_url = f'{get_config(profile.settings).host+ ":" +str(get_config(profile.settings).port)}/revocation-registry-definition'
         responce = requests.post(url=registry_rev_reg_def_url, json={"rev_reg_def": qmc_rev_reg_def})
 
         if responce.status_code != 200:
