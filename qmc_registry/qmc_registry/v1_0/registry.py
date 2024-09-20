@@ -65,6 +65,7 @@ from aries_cloudagent.anoncreds.models.anoncreds_revocation import ( # type: ign
 from aries_cloudagent.anoncreds.models.anoncreds_schema import AnonCredsSchema, GetSchemaResult, SchemaResult  # type: ignore
 from aries_cloudagent.anoncreds.issuer import CATEGORY_CRED_DEF, AnonCredsIssuer, AnonCredsIssuerError # type: ignore
 import requests
+from .config import get_config
 
 LOGGER = logging.getLogger(__name__)
 
@@ -158,7 +159,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     ) -> SchemaResult:
         """Register a schema on the registry."""
         LOGGER.info("QMCREGISTRY : register schema ")
-
+        get_config(profile.settings)
         LOGGER.info("Set schema ")
         get_shema_url = f'{URL}/schema'
         LOGGER.info(f'URL: {get_shema_url}')
