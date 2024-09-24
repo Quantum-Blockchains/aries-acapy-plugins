@@ -121,7 +121,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
 
     async def get_schema(self, profile: Profile, schema_id: str) -> GetSchemaResult:
         """Get a schema from the registry."""
-        LOGGER.info("Get schema. ID_SCHEMA: {schema_id}")
+        LOGGER.info(f"Get schema. ID_SCHEMA: {schema_id}")
         get_shema_url = f'{get_config(profile.settings).host + ":" + str(get_config(profile.settings).port)}/schema/{schema_id[8:]}'
         responce = requests.get(get_shema_url)
         responce_body = responce.json()
@@ -156,7 +156,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         get_shema_url = f'{get_config(profile.settings).host+ ":" + str(get_config(profile.settings).port)}/schema'
         schema_id = self.make_schema_id(schema)
 
-        LOGGER.info("Register schema. ID_SCHEMA: {schema_id}")
+        LOGGER.info(f"Register schema. ID_SCHEMA: {schema_id}")
 
         data = {
             "schema_id": schema_id[8:],
@@ -191,7 +191,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             self, profile: Profile, credential_definition_id: str
     ) -> GetCredDefResult:
         """Get a credential definition from the registry."""
-        LOGGER.info("Get credential definition. ID_cred_def: {credential_definition_id}")
+        LOGGER.info(f"Get credential definition. ID_cred_def: {credential_definition_id}")
         get_cred_def_url = f'{get_config(profile.settings).host+ ":" +str(get_config(profile.settings).port)}/credential-definition/{credential_definition_id[8:]}'
         responce = requests.get(get_cred_def_url)
         responce_body = responce.json()
@@ -230,7 +230,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         options = options or {}
         cred_def_id = self.make_cred_def_id(schema, credential_definition)
 
-        LOGGER.info("Register credential definition. ID_cred_def: {cred_def_id}")
+        LOGGER.info(f"Register credential definition. ID_cred_def: {cred_def_id}")
 
         # Check if in wallet but not on ledger
         issuer = AnonCredsIssuer(profile)
@@ -277,7 +277,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             self, profile: Profile, revocation_registry_id: str
     ) -> GetRevRegDefResult:
         """Get a revocation registry definition from the registry."""
-        LOGGER.info("Get revocation registry definition. Id_rev_reg_def: {revocation_registry_id}")
+        LOGGER.info(f"Get revocation registry definition. Id_rev_reg_def: {revocation_registry_id}")
         get_rev_reg_def_url = f'{get_config(profile.settings).host+ ":" +str(get_config(profile.settings).port)}/credential-definition/{revocation_registry_id[8:]}'
         responce = requests.get(get_rev_reg_def_url)
         responce_body = responce.json()
@@ -317,7 +317,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         options = options or {}
         rev_reg_def_id = self.make_rev_reg_def_id(revocation_registry_definition)
         
-        LOGGER.info("Register revocation registry definition. ID_rev_reg_def: {rev_reg_def_id}")
+        LOGGER.info(f"Register revocation registry definition. ID_rev_reg_def: {rev_reg_def_id}")
 
         qmc_rev_reg_def = {
             "rev_reg_def_id": rev_reg_def_id[8:],
@@ -361,7 +361,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             self, profile: Profile, revocation_registry_id: str, timestamp: int
     ) -> GetRevListResult:
         """Get a revocation list from the registry."""
-        LOGGER.info("Get revocation list. Id_rev_reg_def: {revocation_registry_id}")
+        LOGGER.info(f"Get revocation list. Id_rev_reg_def: {revocation_registry_id}")
         raise NotImplementedError()
 
     async def register_revocation_list(
@@ -372,7 +372,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             options: Optional[dict] = None,
     ) -> RevListResult:
         """Register a revocation list on the registry."""
-        LOGGER.info("Register revocation list. Id_rev_reg_def: {rev_reg_def}")
+        LOGGER.info(f"Register revocation list. Id_rev_reg_def: {rev_reg_def}")
         print("Register a revocation list on the registry.")
         print("REV_RED_DEF")
         print(rev_reg_def)        
