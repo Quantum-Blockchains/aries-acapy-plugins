@@ -121,7 +121,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
 
     async def get_schema(self, profile: Profile, schema_id: str) -> GetSchemaResult:
         """Get a schema from the registry."""
-        LOGGER.info("Get schema ")
+        LOGGER.info("Get schema. ID_SCHEMA: {schema_id}")
         get_shema_url = f'{get_config(profile.settings).host + ":" + str(get_config(profile.settings).port)}/schema/{schema_id[8:]}'
         responce = requests.get(get_shema_url)
         responce_body = responce.json()
@@ -143,7 +143,6 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             resolution_metadata={"ledger_id": ""},
             schema_metadata={"seqNo": ""},
         )
-
         return result
 
     async def register_schema(
@@ -153,11 +152,11 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             options: Optional[dict] = None,
     ) -> SchemaResult:
         """Register a schema on the registry."""
-        LOGGER.info("QMCREGISTRY : register schema ")
+        
         get_shema_url = f'{get_config(profile.settings).host+ ":" + str(get_config(profile.settings).port)}/schema'
-        LOGGER.info(f'URL: {get_shema_url}')
-
         schema_id = self.make_schema_id(schema)
+
+        LOGGER.info("Register schema. ID_SCHEMA: {schema_id}")
 
         data = {
             "schema_id": schema_id[8:],
@@ -192,7 +191,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             self, profile: Profile, credential_definition_id: str
     ) -> GetCredDefResult:
         """Get a credential definition from the registry."""
-        LOGGER.info("Get credential definition ")
+        LOGGER.info("Get credential definition. ID_cred_def: {credential_definition_id}")
         get_cred_def_url = f'{get_config(profile.settings).host+ ":" +str(get_config(profile.settings).port)}/credential-definition/{credential_definition_id[8:]}'
         responce = requests.get(get_cred_def_url)
         responce_body = responce.json()
@@ -228,9 +227,10 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             options: Optional[dict] = None,
     ) -> CredDefResult:
         """Register a credential definition on the registry."""
-        LOGGER.info("Register a credential definition ")
         options = options or {}
         cred_def_id = self.make_cred_def_id(schema, credential_definition)
+
+        LOGGER.info("Register credential definition. ID_cred_def: {cred_def_id}")
 
         # Check if in wallet but not on ledger
         issuer = AnonCredsIssuer(profile)
@@ -243,8 +243,6 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
                     "exists in wallet but not on the ledger"
                 ) from err
 
-        # Translate anoncreds object to indy object
-        LOGGER.debug("Registering credential definition: %s", cred_def_id)
         qmc_cred_def = {
             "cred_def_id": cred_def_id[8:],
             "schema_id": str(schema.schema_id[8:]),
@@ -253,21 +251,16 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             "value": credential_definition.value.serialize(),
             "ver": "1.0",
         }
-        LOGGER.debug("Cred def value: %s", qmc_cred_def)
         
         get_shema_url = f'{get_config(profile.settings).host+ ":" +str(get_config(profile.settings).port)}/credential-definition'
-        print(qmc_cred_def)
         responce = requests.post(url=get_shema_url, json={"cred_def": qmc_cred_def})
 
         if responce.status_code != 200:
             raise AnonCredsRegistrationError("Failed to register credential definition.") 
 
         response_body = responce.json()
-        LOGGER.info("Cred def url: %s", response_body)
         if response_body["error"] == True:
             raise AnonCredsRegistrationError(f"Failed to register credential definition. {response_body["message_error"]}") 
-
-        LOGGER.info(f'FINISHED! extrinsic_hash: {response_body["extrinsic_hash"]}, block_hash: {response_body["block_hash"]}')
 
         return CredDefResult(
             job_id=None,
@@ -284,7 +277,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             self, profile: Profile, revocation_registry_id: str
     ) -> GetRevRegDefResult:
         """Get a revocation registry definition from the registry."""
-        LOGGER.info("Get credential definition ")
+        LOGGER.info("Get revocation registry definition. Id_rev_reg_def: {revocation_registry_id}")
         get_rev_reg_def_url = f'{get_config(profile.settings).host+ ":" +str(get_config(profile.settings).port)}/credential-definition/{revocation_registry_id[8:]}'
         responce = requests.get(get_rev_reg_def_url)
         responce_body = responce.json()
@@ -296,7 +289,6 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
 
         rev_reg_def = responce_body["revocation-registry-definition"]
 
-        LOGGER.debug("Retrieved revocation registry definition: %s", rev_reg_def)
         rev_reg_def_value = RevRegDefValue.deserialize(rev_reg_def["value"])
         anoncreds_rev_reg_def = RevRegDef(
             issuer_id=DID+rev_reg_def["rev_reg_def_id"].split(":")[0],
@@ -325,6 +317,8 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         options = options or {}
         rev_reg_def_id = self.make_rev_reg_def_id(revocation_registry_definition)
         
+        LOGGER.info("Register revocation registry definition. ID_rev_reg_def: {rev_reg_def_id}")
+
         qmc_rev_reg_def = {
             "rev_reg_def_id": rev_reg_def_id[8:],
             "cred_def_id": revocation_registry_definition.cred_def_id[8:],
@@ -350,8 +344,6 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         if response_body["error"] == True:
             raise AnonCredsRegistrationError(f"Failed to register revocation registry definition. {response_body["message_error"]}") 
 
-        LOGGER.info(f'FINISHED! extrinsic_hash: {response_body["extrinsic_hash"]}, block_hash: {response_body["block_hash"]}')
-
         return RevRegDefResult(
             job_id=None,
             revocation_registry_definition_state=RevRegDefState(
@@ -369,6 +361,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             self, profile: Profile, revocation_registry_id: str, timestamp: int
     ) -> GetRevListResult:
         """Get a revocation list from the registry."""
+        LOGGER.info("Get revocation list. Id_rev_reg_def: {revocation_registry_id}")
         raise NotImplementedError()
 
     async def register_revocation_list(
@@ -379,7 +372,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             options: Optional[dict] = None,
     ) -> RevListResult:
         """Register a revocation list on the registry."""
-
+        LOGGER.info("Register revocation list. Id_rev_reg_def: {rev_reg_def}")
         print("Register a revocation list on the registry.")
         print("REV_RED_DEF")
         print(rev_reg_def)        
