@@ -372,14 +372,42 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             options: Optional[dict] = None,
     ) -> RevListResult:
         """Register a revocation list on the registry."""
-        LOGGER.info(f"Register revocation list. Id_rev_reg_def: {rev_reg_def}")
-        print("Register a revocation list on the registry.")
-        print("REV_RED_DEF")
-        print(rev_reg_def)        
-        print("REV_LIST")
-        print(rev_list)
+        LOGGER.info(f"Register revocation list. Id_rev_reg_def: {rev_reg_def.cred_def_id}")
 
-        raise NotImplementedError()
+        options = options or {}
+
+        rev_list_qmc = {
+            "issuer_id": rev_list.issuer_id[8:],
+            "rev_reg_def_id": rev_list.rev_reg_def_id[8:],
+            "value": {
+                "prev_accumulator": None,
+                "current_accumulator": rev_list.current_accumulator,
+                "revoked": rev_list.revocation_list,
+                "issued": None
+            },
+            "timestamp": rev_list.timestamp,
+            "ver": "1.0"
+        }
+        
+        registry_rev_list_url = f'{get_config(profile.settings).host+ ":" +str(get_config(profile.settings).port)}/revocation-list'
+        responce = requests.post(url=registry_rev_list_url, json={"rev_list": rev_list_qmc})
+
+        if responce.status_code != 200:
+            raise AnonCredsRegistrationError("Failed to register revocation list.") 
+
+        response_body = responce.json()
+        if response_body["error"] == True:
+            raise AnonCredsRegistrationError(f"Failed to register revocation list. {response_body["message_error"]}")
+
+        return RevListResult(
+                job_id=None,
+                revocation_list_state=RevListState(
+                    state=RevListState.STATE_FINISHED,
+                    revocation_list=rev_list,
+                ),
+                registration_metadata={},
+                revocation_list_metadata={},
+            )
 
     async def update_revocation_list(
             self,
@@ -392,3 +420,8 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     ) -> RevListResult:
         """Update a revocation list on the registry."""
         raise NotImplementedError()
+    
+
+
+
+
