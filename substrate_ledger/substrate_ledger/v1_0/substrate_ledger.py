@@ -131,3 +131,9 @@ class SubstrateLedger(BaseLedger):
     async def txn_submit(self, *args, **kwargs):
         """Submit a transaction."""
         raise NotImplementedError("Substrate ledger does not support transaction submission.")
+    
+    async def get_latest_txn_author_acceptance(self):
+        raise NotImplementedError("Substrate ledger does not support.")
+    
+    async def is_ledger_read_only(self) -> bool:
+        raise NotImplementedError("Substrate ledger does not support.")
