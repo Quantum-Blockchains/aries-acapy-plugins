@@ -66,6 +66,8 @@ from aries_cloudagent.anoncreds.models.anoncreds_schema import AnonCredsSchema, 
 from aries_cloudagent.anoncreds.issuer import CATEGORY_CRED_DEF, AnonCredsIssuer, AnonCredsIssuerError # type: ignore
 import requests
 from .config import get_config
+from substrateinterface import SubstrateInterface, Keypair
+from substrateinterface.exceptions import SubstrateRequestException
 
 LOGGER = logging.getLogger(__name__)
 
@@ -83,6 +85,10 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         TODO: update this docstring - Anoncreds-break.
 
         """
+        self.substrate = SubstrateInterface(
+            url=get_config(profile.settings).url,
+        )
+        self.keypair = Keypair.create_from_uri("//Alice")
         self._supported_identifiers_regex = re.compile(r"^did:qmc.*$")
 
     @property
@@ -122,27 +128,29 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     async def get_schema(self, profile: Profile, schema_id: str) -> GetSchemaResult:
         """Get a schema from the registry."""
         LOGGER.info(f"Get schema. ID_SCHEMA: {schema_id}")
-        get_shema_url = f'{get_config(profile.settings).host + ":" + str(get_config(profile.settings).port)}/schema/{schema_id[8:]}'
-        responce = requests.get(get_shema_url)
-        responce_body = responce.json()
 
-        if responce_body["schema"] == {}:
-            raise AnonCredsObjectNotFound(
-                        f"Schema not found: {schema_id}"
-                    )
-
+        schema = self.substrate.query(
+            module="Did",
+            storage_function="Schemas",
+            params=[schema_id[8:]]
+        )
+        
+        if schema == None:
+            raise AnonCredsObjectNotFound(f"Schema not found: {schema_id}")
+        
         anonscreds_schema = AnonCredsSchema(
-            issuer_id=DID + responce_body["schema"]["issuer_id"],
-            attr_names=responce_body["schema"]["attr_names"],
-            name=responce_body["schema"]["name"],
-            version=responce_body["schema"]["version"],
+            issuer_id=DID + schema.value["schema_id"],
+            attr_names=schema.value["attr_names"],
+            name=schema.value["name"],
+            version=schema.value["version"],
         )
         result = GetSchemaResult(
             schema=anonscreds_schema,
-            schema_id=DID + responce_body["schema"]["schema_id"],
+            schema_id=DID + schema.value["schema_id"],
             resolution_metadata={"ledger_id": ""},
             schema_metadata={"seqNo": ""},
         )
+       
         return result
 
     async def register_schema(
@@ -152,8 +160,6 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             options: Optional[dict] = None,
     ) -> SchemaResult:
         """Register a schema on the registry."""
-        
-        get_shema_url = f'{get_config(profile.settings).host+ ":" + str(get_config(profile.settings).port)}/schema'
         schema_id = self.make_schema_id(schema)
 
         LOGGER.info(f"Register schema. ID_SCHEMA: {schema_id}")
@@ -166,17 +172,24 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             "version": schema.version,
             "ver": "1.0"
         }
-        responce = requests.post(url=get_shema_url, json={"schema": data})
 
-        if responce.status_code != 200:
-            raise AnonCredsRegistrationError("Failed to register schema") 
+        call = self.substrate.compose_call(
+            call_module="Did",
+            call_function="create_schema",
+            call_params={
+                "schema": data
+            }
+        )
+        extrinsic = self.substrate.create_signed_extrinsic(call=call, keypair=self.keypair)
 
-        response_body = responce.json()
-
-        if response_body["error"] == True:
-            raise AnonCredsRegistrationError(f"Failed to register schema. {response_body["message_error"]}") 
-
-        return SchemaResult(
+        try:
+            receipt = self.substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
+            LOGGER.info(
+                "Extrinsic '{}' sent and included in block '{}'".format(
+                    receipt.extrinsic_hash, receipt.block_hash
+                )
+            )
+            return SchemaResult(
                 job_id=None,
                 schema_state=SchemaState(
                     state=SchemaState.STATE_FINISHED,
@@ -186,34 +199,39 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
                 registration_metadata={},
                 schema_metadata={},
             )
-    
+        except SubstrateRequestException as e:
+            LOGGER.info("Failed to send: {}".format(e))
+            raise AnonCredsRegistrationError("Failed to register schema") 
+
     async def get_credential_definition(
             self, profile: Profile, credential_definition_id: str
     ) -> GetCredDefResult:
         """Get a credential definition from the registry."""
         LOGGER.info(f"Get credential definition. ID_cred_def: {credential_definition_id}")
-        get_cred_def_url = f'{get_config(profile.settings).host+ ":" +str(get_config(profile.settings).port)}/credential-definition/{credential_definition_id[8:]}'
-        responce = requests.get(get_cred_def_url)
-        responce_body = responce.json()
 
-        if responce_body["credential-definition"] == {}:
+        cred_def = self.substrate.query(
+            module="Did",
+            storage_function="CredentialDefinitions",
+            params=[credential_definition_id[8:]]
+        )
+
+        if cred_def == None:
             raise AnonCredsObjectNotFound(
-                        f"Credential definition not found: {credential_definition_id}"
-                )
+                f"Credential definition not found: {credential_definition_id}"
+            )
 
-        cred_def = responce_body["credential-definition"]
+        cred_def_value = CredDefValue.deserialize(cred_def.value["value"])
 
-        cred_def_value = CredDefValue.deserialize(cred_def["value"])
         anoncreds_credential_definition = CredDef(
-            issuer_id=DID+cred_def["id"].split(":")[0],
-            schema_id=DID+cred_def["schemaId"],
-            type=cred_def["type"],
-            tag=cred_def["tag"],
+            issuer_id=DID+cred_def.value["cred_def_id"].split(":")[0],
+            schema_id=DID+cred_def.value["schema_id"],
+            type=cred_def.value["ttype"],
+            tag=cred_def.value["tag"],
             value=cred_def_value,
         )
         anoncreds_registry_get_credential_definition = GetCredDefResult(
             credential_definition=anoncreds_credential_definition,
-            credential_definition_id=DID+cred_def["id"],
+            credential_definition_id=DID+cred_def.value["cred_def_id"],
             resolution_metadata={},
             credential_definition_metadata={},
         )
@@ -243,7 +261,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
                     "exists in wallet but not on the ledger"
                 ) from err
 
-        qmc_cred_def = {
+        cred_def = {
             "cred_def_id": cred_def_id[8:],
             "schema_id": str(schema.schema_id[8:]),
             "tag": credential_definition.tag,
@@ -251,55 +269,71 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             "value": credential_definition.value.serialize(),
             "ver": "1.0",
         }
+        tmp = list()
+        for i in cred_def["value"]["primary"]["r"]:
+            tmp.append({"name": i, "value": cred_def["value"]["primary"]["r"][i]})
+        cred_def["value"]["primary"]["r"] = tmp
+        if not "revocation" in cred_def["value"]:
+            cred_def["value"]["revocation"] = None
         
-        get_shema_url = f'{get_config(profile.settings).host+ ":" +str(get_config(profile.settings).port)}/credential-definition'
-        responce = requests.post(url=get_shema_url, json={"cred_def": qmc_cred_def})
-
-        if responce.status_code != 200:
-            raise AnonCredsRegistrationError("Failed to register credential definition.") 
-
-        response_body = responce.json()
-        if response_body["error"] == True:
-            raise AnonCredsRegistrationError(f"Failed to register credential definition. {response_body["message_error"]}") 
-
-        return CredDefResult(
-            job_id=None,
-            credential_definition_state=CredDefState(
-                state=CredDefState.STATE_FINISHED,
-                credential_definition_id=cred_def_id,
-                credential_definition=credential_definition,
-            ),
-            registration_metadata={},
-            credential_definition_metadata={},
+        call = self.substrate.compose_call(
+            call_module="Did",
+            call_function="create_credential_definition",
+            call_params={
+                "cred_def": cred_def
+            },
         )
+        extrinsic = self.substrate.create_signed_extrinsic(call=call, keypair=self.keypair)
+
+        try:
+            receipt = self.substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
+            LOGGER.info(
+                "Extrinsic '{}' sent and included in block '{}'".format(
+                    receipt.extrinsic_hash, receipt.block_hash
+                )
+            )
+            return CredDefResult(
+                job_id=None,
+                credential_definition_state=CredDefState(
+                    state=CredDefState.STATE_FINISHED,
+                    credential_definition_id=cred_def_id,
+                    credential_definition=credential_definition,
+                ),
+                registration_metadata={},
+                credential_definition_metadata={},
+            )
+        except SubstrateRequestException as e:
+            LOGGER.info("Failed to send: {}".format(e))
 
     async def get_revocation_registry_definition(
             self, profile: Profile, revocation_registry_id: str
     ) -> GetRevRegDefResult:
         """Get a revocation registry definition from the registry."""
         LOGGER.info(f"Get revocation registry definition. Id_rev_reg_def: {revocation_registry_id}")
-        get_rev_reg_def_url = f'{get_config(profile.settings).host+ ":" +str(get_config(profile.settings).port)}/credential-definition/{revocation_registry_id[8:]}'
-        responce = requests.get(get_rev_reg_def_url)
-        responce_body = responce.json()
-
-        if responce_body["revocation-registry-definition"] == {}:
+        
+        rev_reg_def = self.substrate.query(
+            module="Did",
+            storage_function="RevocationRegistryDefinitions",
+            params=[revocation_registry_id[8:]]
+        )
+        
+        if rev_reg_def == None:
             raise AnonCredsObjectNotFound(
                         f"Revocation registry definition not found: {revocation_registry_id}"
                 )
 
-        rev_reg_def = responce_body["revocation-registry-definition"]
+        rev_reg_def_value = RevRegDefValue.deserialize(rev_reg_def.value["value"])
 
-        rev_reg_def_value = RevRegDefValue.deserialize(rev_reg_def["value"])
         anoncreds_rev_reg_def = RevRegDef(
-            issuer_id=DID+rev_reg_def["rev_reg_def_id"].split(":")[0],
-            cred_def_id=rev_reg_def["cred_def_id"],
-            type=rev_reg_def["rev_reg_def_type"],
+            issuer_id=DID+rev_reg_def.value["rev_reg_def_id"].split(":")[0],
+            cred_def_id=rev_reg_def.value["cred_def_id"],
+            type=rev_reg_def.value["rev_reg_def_type"],
             value=rev_reg_def_value,
-            tag=rev_reg_def["tag"],
+            tag=rev_reg_def.value["tag"],
         )
         result = GetRevRegDefResult(
             revocation_registry=anoncreds_rev_reg_def,
-            revocation_registry_id=rev_reg_def["rev_reg_def_id"],
+            revocation_registry_id=rev_reg_def.value["rev_reg_def_id"],
             resolution_metadata={},
             revocation_registry_metadata={},
         )
@@ -319,7 +353,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         
         LOGGER.info(f"Register revocation registry definition. ID_rev_reg_def: {rev_reg_def_id}")
 
-        qmc_rev_reg_def = {
+        rev_reg_def = {
             "rev_reg_def_id": rev_reg_def_id[8:],
             "cred_def_id": revocation_registry_definition.cred_def_id[8:],
             "rev_reg_def_type": revocation_registry_definition.type,
@@ -333,30 +367,40 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             },
             "ver": "1.0"
         }
-        
-        registry_rev_reg_def_url = f'{get_config(profile.settings).host+ ":" +str(get_config(profile.settings).port)}/revocation-registry-definition'
-        responce = requests.post(url=registry_rev_reg_def_url, json={"rev_reg_def": qmc_rev_reg_def})
-
-        if responce.status_code != 200:
-            raise AnonCredsRegistrationError("Failed to register revocation registry definition.") 
-
-        response_body = responce.json()
-        if response_body["error"] == True:
-            raise AnonCredsRegistrationError(f"Failed to register revocation registry definition. {response_body["message_error"]}") 
-
-        return RevRegDefResult(
-            job_id=None,
-            revocation_registry_definition_state=RevRegDefState(
-                state=RevRegDefState.STATE_FINISHED,
-                revocation_registry_definition_id=rev_reg_def_id,
-                revocation_registry_definition=revocation_registry_definition,
-            ),
-            registration_metadata={
-                "txn": None,
+        tmp = str(rev_reg_def["value"]["public_keys"])
+        rev_reg_def["value"]["public_keys"] = tmp
+       
+        call = self.substrate.compose_call(
+            call_module="Did",
+            call_function="create_revocation_registry_definition",
+            call_params={
+                "rev_reg_def": rev_reg_def
             },
-            revocation_registry_definition_metadata={},
         )
-
+        extrinsic = self.substrate.create_signed_extrinsic(call=call, keypair=self.keypair)
+        try:
+            receipt = self.substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
+            print(
+                "Extrinsic '{}' sent and included in block '{}'".format(
+                    receipt.extrinsic_hash, receipt.block_hash
+                )
+            )
+            return RevRegDefResult(
+                job_id=None,
+                revocation_registry_definition_state=RevRegDefState(
+                    state=RevRegDefState.STATE_FINISHED,
+                    revocation_registry_definition_id=rev_reg_def_id,
+                    revocation_registry_definition=revocation_registry_definition,
+                ),
+                registration_metadata={
+                    "txn": None,
+                },
+                revocation_registry_definition_metadata={},
+            )
+        except SubstrateRequestException as e:
+            LOGGER.info("Failed to send: {}".format(e))
+            raise AnonCredsRegistrationError("Failed to register revocation registry definition.")
+        
     async def get_revocation_list(
             self, profile: Profile, revocation_registry_id: str, timestamp: int
     ) -> GetRevListResult:
@@ -376,7 +420,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
 
         options = options or {}
 
-        rev_list_qmc = {
+        rev_list = {
             "issuer_id": rev_list.issuer_id[8:],
             "rev_reg_def_id": rev_list.rev_reg_def_id[8:],
             "value": {
@@ -388,18 +432,25 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             "timestamp": rev_list.timestamp,
             "ver": "1.0"
         }
-        
-        registry_rev_list_url = f'{get_config(profile.settings).host+ ":" +str(get_config(profile.settings).port)}/revocation-list'
-        responce = requests.post(url=registry_rev_list_url, json={"rev_list": rev_list_qmc})
+        if not "timestamp" in rev_list:
+            rev_list["timestamp"] = None
 
-        if responce.status_code != 200:
-            raise AnonCredsRegistrationError("Failed to register revocation list.") 
-
-        response_body = responce.json()
-        if response_body["error"] == True:
-            raise AnonCredsRegistrationError(f"Failed to register revocation list. {response_body["message_error"]}")
-
-        return RevListResult(
+        call = self.substrate.compose_call(
+            call_module="Did",
+            call_function="create_revocation_list",
+            call_params={
+                "rev_list": rev_list
+            },
+        )
+        extrinsic = self.substrate.create_signed_extrinsic(call=call, keypair=self.keypair)
+        try:
+            receipt = self.substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
+            LOGGER.info(
+                "Extrinsic '{}' sent and included in block '{}'".format(
+                    receipt.extrinsic_hash, receipt.block_hash
+                )
+            )
+            return RevListResult(
                 job_id=None,
                 revocation_list_state=RevListState(
                     state=RevListState.STATE_FINISHED,
@@ -408,7 +459,10 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
                 registration_metadata={},
                 revocation_list_metadata={},
             )
-
+        except SubstrateRequestException as e:
+            LOGGER.info("Failed to send: {}".format(e))
+            raise AnonCredsRegistrationError("Failed to register revocation list.")
+        
     async def update_revocation_list(
             self,
             profile: Profile,
@@ -421,7 +475,3 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         """Update a revocation list on the registry."""
         raise NotImplementedError()
     
-
-
-
-
