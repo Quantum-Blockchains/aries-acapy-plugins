@@ -86,7 +86,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
 
         """
         self.substrate = SubstrateInterface(
-            url=get_config(profile.settings).url,
+            url="ws://172.17.",
         )
         self.keypair = Keypair.create_from_uri("//Alice")
         self._supported_identifiers_regex = re.compile(r"^did:qmc.*$")

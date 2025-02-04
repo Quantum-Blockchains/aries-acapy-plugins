@@ -6,5 +6,5 @@ from .config import get_config
 from .substrate_ledger import SubstrateLedger
 
 async def setup(context: InjectionContext):
-    print(get_config(context.settings).url)
-    context.injector.bind_instance(BaseLedger, SubstrateLedger(get_config(context.settings).url))
+    url = get_config(context.settings).url
+    context.injector.bind_instance(BaseLedger, SubstrateLedger(url=url))
