@@ -3,13 +3,14 @@ from substrateinterface import SubstrateInterface, Keypair
 import logging
 from aries_cloudagent.ledger.error import LedgerError
 from typing import Optional, Dict, Any
+from .config import get_config
 
 LOGGER = logging.getLogger(__name__)
 
 class SubstrateLedger(BaseLedger):
     def __init__(self):
         LOGGER.info("init substrate ledger")
-        self.substrate = SubstrateInterface(url="ws://localhost:9944")
+        self.substrate = SubstrateInterface(url=get_config(profile.settings).url)
         # self.keypair = keypair or Keypair.create_from_mnemonic(config.config['agent']['keypair_mnemonic'])
 
     @property
