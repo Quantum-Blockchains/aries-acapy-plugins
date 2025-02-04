@@ -4,6 +4,7 @@ import logging
 from aries_cloudagent.ledger.error import LedgerError
 from typing import Optional, Dict, Any
 from .config import get_config
+from aries_cloudagent.core.profile import Profile
 
 LOGGER = logging.getLogger(__name__)
 
