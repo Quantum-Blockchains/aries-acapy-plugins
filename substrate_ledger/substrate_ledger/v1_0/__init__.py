@@ -5,4 +5,4 @@ from aries_cloudagent.config.injection_context import InjectionContext
 from .substrate_ledger import SubstrateLedger
 
 async def setup(context: InjectionContext):
-    context.injector.bind_instance(BaseLedger, SubstrateLedger(context["substrate-ledger"]["url"]))
+    context.injector.bind_instance(BaseLedger, SubstrateLedger(context.settings["substrate-ledger"]["url"]))
