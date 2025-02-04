@@ -9,7 +9,7 @@ from aries_cloudagent.core.profile import Profile
 LOGGER = logging.getLogger(__name__)
 
 class SubstrateLedger(BaseLedger):
-    def __init__(self):
+    def __init__(self, profile: Profile):
         LOGGER.info("init substrate ledger")
         self.substrate = SubstrateInterface(url=get_config(profile.settings).url)
         # self.keypair = keypair or Keypair.create_from_mnemonic(config.config['agent']['keypair_mnemonic'])
