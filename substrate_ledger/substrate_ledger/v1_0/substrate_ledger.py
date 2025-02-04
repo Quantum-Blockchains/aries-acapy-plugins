@@ -1,4 +1,4 @@
-from aries_cloudagent.core.ledger.base import BaseLedger
+from aries_cloudagent.ledger.base import BaseLedger
 from substrateinterface import SubstrateInterface, Keypair
 import logging
 
