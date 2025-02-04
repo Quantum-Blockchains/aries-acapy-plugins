@@ -5,5 +5,4 @@ from aries_cloudagent.config.injection_context import InjectionContext
 from .substrate_ledger import SubstrateLedger
 
 async def setup(context: InjectionContext):
-    registry = context.inject(PluginRegistry)
-    registry.register_ledger(SubstrateLedger())
+    context.injector.bind_instance(BaseLedger, SubstrateLedger())
