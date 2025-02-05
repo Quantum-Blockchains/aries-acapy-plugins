@@ -10,11 +10,11 @@ from aries_cloudagent.wallet.base import BaseWallet, DIDInfo
 LOGGER = logging.getLogger(__name__)
 
 class SubstrateLedger(BaseLedger):
-    def __init__(self, url, profile: Profile):
+    def __init__(self, url):
         LOGGER.info("init substrate ledger")
         self.substrate = SubstrateInterface(url=url)
         self.taa_cache = None
-        self.profile = profile
+        # self.profile = profile
         # self.keypair = keypair or Keypair.create_from_mnemonic(config.config['agent']['keypair_mnemonic'])
 
     @property
