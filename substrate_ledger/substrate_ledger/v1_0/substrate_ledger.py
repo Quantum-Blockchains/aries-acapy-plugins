@@ -63,6 +63,7 @@ class SubstrateLedger(BaseLedger):
 
     async def fetch_txn_author_agreement(self):
         """Fetch the transaction author agreement."""
+        LOGGER.info("fetch 1")
         public_info = await self.get_wallet_public_did()
         public_did = public_info.did if public_info else None
 
@@ -71,7 +72,7 @@ class SubstrateLedger(BaseLedger):
             storage_function="Taa",
             params=[]
         )
-
+        LOGGER.info("fetch 2")
         aml_found = {
             "aml": {
                 "additionalProp1": "string",
@@ -87,12 +88,15 @@ class SubstrateLedger(BaseLedger):
                 "text": "string",
                 "version": "string"
             }
+        
         taa_required = True
+        LOGGER.info("fetch 3")
         responce = {
             "aml_record": aml_found,
             "taa_record": taa_found,
             "taa_required": taa_required,
         }
+        LOGGER.info("fetch 4")
         print(responce)
         return responce
 
@@ -138,6 +142,8 @@ class SubstrateLedger(BaseLedger):
         if not self.taa_cache or reload:
             LOGGER.info("yes 2")
             self.taa_cache = self.fetch_txn_author_agreement
+        LOGGER.info("yes 3")
+        LOGGER.info(self.taa_cache)
         return self.taa_cache
 
     async def get_wallet_public_did(self, *args, **kwargs) -> DIDInfo:
