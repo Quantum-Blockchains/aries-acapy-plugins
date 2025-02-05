@@ -13,7 +13,7 @@ class SubstrateLedger(BaseLedger):
     def __init__(self, url):
         LOGGER.info("init substrate ledger")
         self.substrate = SubstrateInterface(url=url)
-        self.taa_cache = None
+        self.taa_cache: Optional[str] = None
         # self.profile = profile
         # self.keypair = keypair or Keypair.create_from_mnemonic(config.config['agent']['keypair_mnemonic'])
 
@@ -134,8 +134,9 @@ class SubstrateLedger(BaseLedger):
 
     async def get_txn_author_agreement(self, reload: bool = False) -> dict:
         """Get the transaction author agreement."""
-        LOGGER.info("yes")
+        LOGGER.info("yes 1")
         if not self.taa_cache or reload:
+            LOGGER.info("yes 2")
             self.taa_cache = self.fetch_txn_author_agreement
         return self.taa_cache
 
