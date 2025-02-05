@@ -88,11 +88,13 @@ class SubstrateLedger(BaseLedger):
                 "version": "string"
             }
         taa_required = True
-        return {
+        responce = {
             "aml_record": aml_found,
             "taa_record": taa_found,
             "taa_required": taa_required,
         }
+        print(responce)
+        return responce
 
     async def get_all_endpoints_for_did(self, *args, **kwargs):
         """Get all endpoints for a DID."""
