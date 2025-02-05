@@ -5,13 +5,16 @@ from aries_cloudagent.ledger.error import LedgerError
 from typing import Optional, Dict, Any
 from .config import get_config
 from aries_cloudagent.core.profile import Profile
+from aries_cloudagent.wallet.base import BaseWallet, DIDInfo
 
 LOGGER = logging.getLogger(__name__)
 
 class SubstrateLedger(BaseLedger):
-    def __init__(self, url):
+    def __init__(self, url, profile: Profile):
         LOGGER.info("init substrate ledger")
         self.substrate = SubstrateInterface(url=url)
+        self.taa_cache = None
+        self.profile = profile
         # self.keypair = keypair or Keypair.create_from_mnemonic(config.config['agent']['keypair_mnemonic'])
 
     @property
@@ -60,7 +63,28 @@ class SubstrateLedger(BaseLedger):
 
     async def fetch_txn_author_agreement(self, *args, **kwargs):
         """Fetch the transaction author agreement."""
-        raise NotImplementedError("Substrate ledger does not support transaction author agreements.")
+        # public_info = await self.get_wallet_public_did()
+        # public_did = public_info.did if public_info else None
+        aml_found = {
+            "aml": {
+                "additionalProp1": "string",
+                "additionalProp2": "string",
+                "additionalProp3": "string"
+            },
+            "amlContext": "string",
+            "version": "string"
+        }
+        taa_found = {
+            "digest": "string",
+            "text": "string",
+            "version": "string"
+        }
+        taa_required = True
+        return {
+            "aml_record": aml_found,
+            "taa_record": taa_found,
+            "taa_required": taa_required,
+        }
 
     async def get_all_endpoints_for_did(self, *args, **kwargs):
         """Get all endpoints for a DID."""
@@ -98,13 +122,17 @@ class SubstrateLedger(BaseLedger):
         """Get a schema."""
         raise NotImplementedError("Substrate ledger does not support schemas.")
 
-    async def get_txn_author_agreement(self, *args, **kwargs):
+    async def get_txn_author_agreement(self, reload: bool = False) -> dict:
         """Get the transaction author agreement."""
-        raise NotImplementedError("Substrate ledger does not support transaction author agreements.")
+        if not self.taa_cache or reload:
+            self.taa_cache = await self.fetch_txn_author_agreement
+        return self.taa_cache
 
-    async def get_wallet_public_did(self, *args, **kwargs):
+    async def get_wallet_public_did(self, *args, **kwargs) -> DIDInfo:
         """Get the public DID from the wallet."""
-        raise NotImplementedError("Substrate ledger does not support wallet public DIDs.")
+        async with self.profile.session() as session:
+            wallet = session.inject(BaseWallet)
+            return await wallet.get_public_did()
 
     async def nym_to_did(self, *args, **kwargs):
         """Convert a NYM to a DID."""
