@@ -141,7 +141,7 @@ class SubstrateLedger(BaseLedger):
         LOGGER.info("yes 1")
         if not self.taa_cache or reload:
             LOGGER.info("yes 2")
-            self.taa_cache = await self.fetch_txn_author_agreement
+            self.taa_cache = await self.fetch_txn_author_agreement()
         LOGGER.info("yes 3")
         LOGGER.info(self.taa_cache)
         return self.taa_cache
