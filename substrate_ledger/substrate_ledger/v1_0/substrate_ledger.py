@@ -112,7 +112,7 @@ class SubstrateLedger(BaseLedger):
         """Get the key for a DID."""
         raise NotImplementedError("Substrate ledger does not support keys for DIDs.")
 
-    async def get_nym_role(self, *args, **kwargs):
+    async def get_nym_role(self, did: str):
         """Get the role for a NYM."""
         raise NotImplementedError("Substrate ledger does not support NYM roles.")
 
@@ -134,6 +134,7 @@ class SubstrateLedger(BaseLedger):
 
     async def get_txn_author_agreement(self, reload: bool = False) -> dict:
         """Get the transaction author agreement."""
+        LOGGER.info("yes")
         if not self.taa_cache or reload:
             self.taa_cache = self.fetch_txn_author_agreement
         return self.taa_cache
