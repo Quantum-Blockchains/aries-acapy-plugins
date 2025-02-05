@@ -7,6 +7,7 @@ from .registry import QmcRegistry
 from aries_cloudagent.multitenant.admin.routes import (
     ACAPY_LIFECYCLE_CONFIG_FLAG_ARGS_MAP,
 )
+from .config import get_config
 
 LOGGER = logging.getLogger(__name__)
 
@@ -17,7 +18,8 @@ async def setup(context: InjectionContext):
     if not registry:
         LOGGER.error("No AnonCredsRegistry instance found in context!!!")
         return
-    qmc_registry = QmcRegistry()
+    url = get_config(context.settings).url
+    qmc_registry = QmcRegistry(url=url)
     await qmc_registry.setup(context)
     registry.register(qmc_registry)
 

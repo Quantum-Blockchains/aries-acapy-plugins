@@ -78,7 +78,7 @@ DEFAULT_SIGNATURE_TYPE = "CL"
 DID = "did:qmc:"
 
 class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
-    def __init__(self):
+    def __init__(self, url):
         """Initialize an instance.
 
         Args:
@@ -86,7 +86,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
 
         """
         self.substrate = SubstrateInterface(
-            url="ws://172.17.",
+            url=url,
         )
         self.keypair = Keypair.create_from_uri("//Alice")
         self._supported_identifiers_regex = re.compile(r"^did:qmc.*$")
