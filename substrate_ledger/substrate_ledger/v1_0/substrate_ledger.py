@@ -61,10 +61,17 @@ class SubstrateLedger(BaseLedger):
         """Fetch a schema by sequence number."""
         raise NotImplementedError("Substrate ledger does not support schemas.")
 
-    def fetch_txn_author_agreement(self, *args, **kwargs):
+    async def fetch_txn_author_agreement(self):
         """Fetch the transaction author agreement."""
-        # public_info = await self.get_wallet_public_did()
-        # public_did = public_info.did if public_info else None
+        public_info = await self.get_wallet_public_did()
+        public_did = public_info.did if public_info else None
+
+        taa_found = self.substrate.query(
+            module="Taa",
+            storage_function="Taa",
+            params=[]
+        )
+
         aml_found = {
             "aml": {
                 "additionalProp1": "string",
@@ -74,11 +81,12 @@ class SubstrateLedger(BaseLedger):
             "amlContext": "string",
             "version": "string"
         }
-        taa_found = {
-            "digest": "string",
-            "text": "string",
-            "version": "string"
-        }
+        if taa_found  is None:
+            taa_found = {
+                "digest": "string",
+                "text": "string",
+                "version": "string"
+            }
         taa_required = True
         return {
             "aml_record": aml_found,
