@@ -133,7 +133,7 @@ class SubstrateLedger(BaseLedger):
     async def get_txn_author_agreement(self, reload: bool = False) -> dict:
         """Get the transaction author agreement."""
         if not self.taa_cache or reload:
-            self.taa_cache = await self.fetch_txn_author_agreement
+            self.taa_cache = self.fetch_txn_author_agreement
         return self.taa_cache
 
     async def get_wallet_public_did(self, *args, **kwargs) -> DIDInfo:
