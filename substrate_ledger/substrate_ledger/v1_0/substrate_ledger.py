@@ -61,7 +61,7 @@ class SubstrateLedger(BaseLedger):
         """Fetch a schema by sequence number."""
         raise NotImplementedError("Substrate ledger does not support schemas.")
 
-    async def fetch_txn_author_agreement(self, *args, **kwargs):
+    def fetch_txn_author_agreement(self, *args, **kwargs):
         """Fetch the transaction author agreement."""
         # public_info = await self.get_wallet_public_did()
         # public_did = public_info.did if public_info else None
