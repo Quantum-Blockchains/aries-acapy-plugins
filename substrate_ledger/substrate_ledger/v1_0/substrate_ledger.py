@@ -70,7 +70,7 @@ class SubstrateLedger(BaseLedger):
         taa_found = self.substrate.query(
             module="Taa",
             storage_function="Taa",
-            params=[]
+            params=[public_did]
         )
         LOGGER.info("fetch 2")
         aml_found = {
@@ -141,7 +141,7 @@ class SubstrateLedger(BaseLedger):
         LOGGER.info("yes 1")
         if not self.taa_cache or reload:
             LOGGER.info("yes 2")
-            self.taa_cache = self.fetch_txn_author_agreement
+            self.taa_cache = await self.fetch_txn_author_agreement
         LOGGER.info("yes 3")
         LOGGER.info(self.taa_cache)
         return self.taa_cache
