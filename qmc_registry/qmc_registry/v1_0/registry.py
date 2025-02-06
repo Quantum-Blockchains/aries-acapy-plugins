@@ -467,7 +467,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             },
             "timestamp": rev_list.timestamp,
             "ver": "1.0"
-        }rev_reg_def_id
+        }
         if not "timestamp" in rev_list:
             rev_list["timestamp"] = None
 
