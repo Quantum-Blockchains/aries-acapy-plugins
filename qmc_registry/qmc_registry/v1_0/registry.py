@@ -129,24 +129,33 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         """Get a schema from the registry."""
         LOGGER.info(f"Get schema. ID_SCHEMA: {schema_id}")
 
-        schema = self.substrate.query(
+        schema_json = self.substrate.query(
             module="Did",
             storage_function="Schemas",
             params=[schema_id[8:]]
         )
         
-        if schema == None:
+        if schema_json == None:
             raise AnonCredsObjectNotFound(f"Schema not found: {schema_id}")
         
+        schema = {
+            "schema_id": schema_json.value["schema_id"],
+            "issuer_id": schema_json.value["issuer_id"],
+            "attr_names": schema_json.value["attr_names"],
+            "name": schema_json.value["name"],
+            "version": schema_json.value["version"],
+            "ver": schema_json.value["ver"]
+        }
+
         anonscreds_schema = AnonCredsSchema(
-            issuer_id=DID + schema.value["schema_id"],
-            attr_names=schema.value["attr_names"],
-            name=schema.value["name"],
-            version=schema.value["version"],
+            issuer_id=DID + schema["schema_id"],
+            attr_names=schema["attr_names"],
+            name=schema["name"],
+            version=schema["version"],
         )
         result = GetSchemaResult(
             schema=anonscreds_schema,
-            schema_id=DID + schema.value["schema_id"],
+            schema_id=DID + schema["schema_id"],
             resolution_metadata={"ledger_id": ""},
             schema_metadata={"seqNo": ""},
         )
@@ -209,29 +218,46 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         """Get a credential definition from the registry."""
         LOGGER.info(f"Get credential definition. ID_cred_def: {credential_definition_id}")
 
-        cred_def = self.substrate.query(
+        cred_def_json = self.substrate.query(
             module="Did",
             storage_function="CredentialDefinitions",
             params=[credential_definition_id[8:]]
         )
 
-        if cred_def == None:
+        if cred_def_json == None:
             raise AnonCredsObjectNotFound(
                 f"Credential definition not found: {credential_definition_id}"
             )
 
-        cred_def_value = CredDefValue.deserialize(cred_def.value["value"])
+        cred_def = {
+            "id": cred_def_json.value["cred_def_id"],
+            "schemaId": cred_def_json.value["schema_id"],
+            "type": cred_def_json.value["ttype"],
+            "tag": cred_def_json.value["tag"],
+            "value": cred_def_json.value["value"],
+            "ver": cred_def_json.value["ver"]
+        }
+        tmp = {}
+        for i in cred_def["value"]["primary"]["r"]:
+            print(5)
+            print(i)
+            tmp[i["name"]] = i["value"]
+        cred_def["value"]["primary"]["r"] = tmp
+        if cred_def["value"]["revocation"] is None:
+            del cred_def["value"]["revocation"]
+
+        cred_def_value = CredDefValue.deserialize(cred_def["value"])
 
         anoncreds_credential_definition = CredDef(
-            issuer_id=DID+cred_def.value["cred_def_id"].split(":")[0],
-            schema_id=DID+cred_def.value["schema_id"],
-            type=cred_def.value["ttype"],
-            tag=cred_def.value["tag"],
+            issuer_id=DID+cred_def["cred_def_id"].split(":")[0],
+            schema_id=DID+cred_def["schema_id"],
+            type=cred_def["ttype"],
+            tag=cred_def["tag"],
             value=cred_def_value,
         )
         anoncreds_registry_get_credential_definition = GetCredDefResult(
             credential_definition=anoncreds_credential_definition,
-            credential_definition_id=DID+cred_def.value["cred_def_id"],
+            credential_definition_id=DID+cred_def["cred_def_id"],
             resolution_metadata={},
             credential_definition_metadata={},
         )
@@ -311,29 +337,39 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         """Get a revocation registry definition from the registry."""
         LOGGER.info(f"Get revocation registry definition. Id_rev_reg_def: {revocation_registry_id}")
         
-        rev_reg_def = self.substrate.query(
+        rev_reg_def_json = self.substrate.query(
             module="Did",
             storage_function="RevocationRegistryDefinitions",
             params=[revocation_registry_id[8:]]
         )
         
-        if rev_reg_def == None:
+        if rev_reg_def_json == None:
             raise AnonCredsObjectNotFound(
                         f"Revocation registry definition not found: {revocation_registry_id}"
                 )
 
-        rev_reg_def_value = RevRegDefValue.deserialize(rev_reg_def.value["value"])
+        rev_reg_def = {
+            "rev_reg_def_id": rev_reg_def_json.value["rev_reg_def_id"],
+            "cred_def_id": rev_reg_def_json.value["cred_def_id"],
+            "rev_reg_def_type": rev_reg_def_json.value["rev_reg_def_type"],
+            "tag": rev_reg_def_json.value["tag"],
+            "value": rev_reg_def_json.value["value"],
+            "ver": rev_reg_def_json.value["ver"]
+        }
+        rev_reg_def["value"]["public_keys"] = json.load(rev_reg_def["value"]["public_keys"])
+
+        rev_reg_def_value = RevRegDefValue.deserialize(rev_reg_def["value"])
 
         anoncreds_rev_reg_def = RevRegDef(
-            issuer_id=DID+rev_reg_def.value["rev_reg_def_id"].split(":")[0],
-            cred_def_id=rev_reg_def.value["cred_def_id"],
-            type=rev_reg_def.value["rev_reg_def_type"],
+            issuer_id=DID+rev_reg_def["rev_reg_def_id"].split(":")[0],
+            cred_def_id=rev_reg_def["cred_def_id"],
+            type=rev_reg_def["rev_reg_def_type"],
             value=rev_reg_def_value,
-            tag=rev_reg_def.value["tag"],
+            tag=rev_reg_def["tag"],
         )
         result = GetRevRegDefResult(
             revocation_registry=anoncreds_rev_reg_def,
-            revocation_registry_id=rev_reg_def.value["rev_reg_def_id"],
+            revocation_registry_id=rev_reg_def["rev_reg_def_id"],
             resolution_metadata={},
             revocation_registry_metadata={},
         )
