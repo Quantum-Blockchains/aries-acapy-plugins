@@ -467,7 +467,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             },
             "timestamp": rev_list.timestamp,
             "ver": "1.0"
-        }
+        }rev_reg_def_id
         if not "timestamp" in rev_list:
             rev_list["timestamp"] = None
 
@@ -486,7 +486,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
                     receipt.extrinsic_hash, receipt.block_hash
                 )
             )
-            return RevListResult(
+            d = RevListResult(
                 job_id=None,
                 revocation_list_state=RevListState(
                     state=RevListState.STATE_FINISHED,
@@ -495,6 +495,8 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
                 registration_metadata={},
                 revocation_list_metadata={},
             )
+            LOGGER.info(d)
+            return d
         except SubstrateRequestException as e:
             LOGGER.info("Failed to send: {}".format(e))
             raise AnonCredsRegistrationError("Failed to register revocation list.")
