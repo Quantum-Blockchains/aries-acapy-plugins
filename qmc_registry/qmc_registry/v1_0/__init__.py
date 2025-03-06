@@ -1,10 +1,10 @@
 import logging
 
-from aries_cloudagent.config.injection_context import InjectionContext
-from aries_cloudagent.config.provider import ClassProvider
-from aries_cloudagent.anoncreds.registry import AnonCredsRegistry
+from acapy_agent.config.injection_context import InjectionContext
+from acapy_agent.config.provider import ClassProvider
+from acapy_agent.anoncreds.registry import AnonCredsRegistry
 from .registry import QmcRegistry
-from aries_cloudagent.multitenant.admin.routes import (
+from acapy_agent.multitenant.admin.routes import (
     ACAPY_LIFECYCLE_CONFIG_FLAG_ARGS_MAP,
 )
 from .config import get_config
