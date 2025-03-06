@@ -2,16 +2,16 @@ import logging
 import re
 from typing import Optional, Pattern, Sequence
 import json
-from aries_cloudagent.config.injection_context import InjectionContext # type: ignore
-from aries_cloudagent.core.profile import Profile # type: ignore
-from aries_cloudagent.anoncreds.base import BaseAnonCredsResolver, BaseAnonCredsRegistrar # type: ignore
-from aries_cloudagent.cache.base import BaseCache
-from aries_cloudagent.anoncreds.models.anoncreds_cred_def import (  # type: ignore
+from acapy_agent.config.injection_context import InjectionContext # type: ignore
+from acapy_agent.core.profile import Profile # type: ignore
+from acapy_agent.anoncreds.base import BaseAnonCredsResolver, BaseAnonCredsRegistrar # type: ignore
+from acapy_agent.cache.base import BaseCache
+from acapy_agent.anoncreds.models.anoncreds_cred_def import (  # type: ignore
     CredDef,
     CredDefResult,
     GetCredDefResult,
 )
-from aries_cloudagent.anoncreds.models.anoncreds_revocation import (  # type: ignore
+from acapy_agent.anoncreds.models.anoncreds_revocation import (  # type: ignore
     GetRevListResult,
     GetRevRegDefResult,
     RevList,
@@ -20,7 +20,7 @@ from aries_cloudagent.anoncreds.models.anoncreds_revocation import (  # type: ig
     RevRegDefResult,
 )
 
-from aries_cloudagent.anoncreds.base import (  # type: ignore
+from acapy_agent.anoncreds.base import (  # type: ignore
     AnonCredsObjectAlreadyExists,
     AnonCredsObjectNotFound,
     AnonCredsRegistrationError,
@@ -30,27 +30,27 @@ from aries_cloudagent.anoncreds.base import (  # type: ignore
     BaseAnonCredsResolver,
 )
 
-from aries_cloudagent.anoncreds.models.anoncreds_schema import (  # type: ignore
+from acapy_agent.anoncreds.models.anoncreds_schema import (  # type: ignore
     AnonCredsSchema,
     GetSchemaResult,
     SchemaResult,
     SchemaState,
 )
-from aries_cloudagent.anoncreds.models.anoncreds_cred_def import ( # type: ignore
+from acapy_agent.anoncreds.models.anoncreds_cred_def import ( # type: ignore
     CredDef,
     CredDefResult,
     CredDefState,
     CredDefValue,
     GetCredDefResult,
 )
-from aries_cloudagent.anoncreds.models.anoncreds_cred_def import ( # type: ignore
+from acapy_agent.anoncreds.models.anoncreds_cred_def import ( # type: ignore
     CredDef,
     CredDefResult,
     CredDefState,
     CredDefValue,
     GetCredDefResult,
 )
-from aries_cloudagent.anoncreds.models.anoncreds_revocation import ( # type: ignore
+from acapy_agent.anoncreds.models.anoncreds_revocation import ( # type: ignore
     GetRevListResult,
     GetRevRegDefResult,
     RevList,
@@ -62,8 +62,8 @@ from aries_cloudagent.anoncreds.models.anoncreds_revocation import ( # type: ign
     RevRegDefValue,
 )
 
-from aries_cloudagent.anoncreds.models.anoncreds_schema import AnonCredsSchema, GetSchemaResult, SchemaResult  # type: ignore
-from aries_cloudagent.anoncreds.issuer import CATEGORY_CRED_DEF, AnonCredsIssuer, AnonCredsIssuerError # type: ignore
+from acapy_agent.anoncreds.models.anoncreds_schema import AnonCredsSchema, GetSchemaResult, SchemaResult  # type: ignore
+from acapy_agent.anoncreds.issuer import CATEGORY_CRED_DEF, AnonCredsIssuer, AnonCredsIssuerError # type: ignore
 import requests
 from .config import get_config
 from substrateinterface import SubstrateInterface, Keypair
