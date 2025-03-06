@@ -36,7 +36,7 @@ from acapy_agent.anoncreds.models.schema import (  # type: ignore
     SchemaResult,
     SchemaState,
 )
-from acapy_agent.anoncreds.models.anoncreds_cred_def import ( # type: ignore
+from acapy_agent.anoncreds.models.credential_definition import ( # type: ignore
     CredDef,
     CredDefResult,
     CredDefState,
