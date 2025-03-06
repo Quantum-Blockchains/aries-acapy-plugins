@@ -512,4 +512,10 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     ) -> RevListResult:
         """Update a revocation list on the registry."""
         raise NotImplementedError()
+
+    async def get_schema_info_by_id(
+        self, profile: Profile, schema_id: str
+    ) -> AnoncredsSchemaInfo:
+        """Get a schema info from the registry."""
+        return await super().get_schema_info_by_id(schema_id)
     
