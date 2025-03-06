@@ -11,7 +11,7 @@ from acapy_agent.anoncreds.models.credential_definition import (  # type: ignore
     CredDefResult,
     GetCredDefResult,
 )
-from acapy_agent.anoncreds.models.anoncreds_revocation import (  # type: ignore
+from acapy_agent.anoncreds.models.revocation import (  # type: ignore
     GetRevListResult,
     GetRevRegDefResult,
     RevList,
@@ -30,7 +30,7 @@ from acapy_agent.anoncreds.base import (  # type: ignore
     BaseAnonCredsResolver,
 )
 
-from acapy_agent.anoncreds.models.anoncreds_schema import (  # type: ignore
+from acapy_agent.anoncreds.models.schema import (  # type: ignore
     AnonCredsSchema,
     GetSchemaResult,
     SchemaResult,
@@ -43,14 +43,14 @@ from acapy_agent.anoncreds.models.anoncreds_cred_def import ( # type: ignore
     CredDefValue,
     GetCredDefResult,
 )
-from acapy_agent.anoncreds.models.anoncreds_cred_def import ( # type: ignore
+from acapy_agent.anoncreds.models.credential_definition import ( # type: ignore
     CredDef,
     CredDefResult,
     CredDefState,
     CredDefValue,
     GetCredDefResult,
 )
-from acapy_agent.anoncreds.models.anoncreds_revocation import ( # type: ignore
+from acapy_agent.anoncreds.models.revocation import ( # type: ignore
     GetRevListResult,
     GetRevRegDefResult,
     RevList,
@@ -62,7 +62,7 @@ from acapy_agent.anoncreds.models.anoncreds_revocation import ( # type: ignore
     RevRegDefValue,
 )
 
-from acapy_agent.anoncreds.models.anoncreds_schema import AnonCredsSchema, GetSchemaResult, SchemaResult  # type: ignore
+from acapy_agent.anoncreds.models.schema import AnonCredsSchema, GetSchemaResult, SchemaResult  # type: ignore
 from acapy_agent.anoncreds.issuer import CATEGORY_CRED_DEF, AnonCredsIssuer, AnonCredsIssuerError # type: ignore
 import requests
 from .config import get_config
