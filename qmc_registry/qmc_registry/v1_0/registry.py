@@ -6,6 +6,7 @@ from acapy_agent.config.injection_context import InjectionContext # type: ignore
 from acapy_agent.core.profile import Profile # type: ignore
 from acapy_agent.anoncreds.base import BaseAnonCredsResolver, BaseAnonCredsRegistrar # type: ignore
 from acapy_agent.cache.base import BaseCache
+from acapy_agent.anoncreds.models.schema_info import AnoncredsSchemaInfo
 from acapy_agent.anoncreds.models.credential_definition import (  # type: ignore
     CredDef,
     CredDefResult,
