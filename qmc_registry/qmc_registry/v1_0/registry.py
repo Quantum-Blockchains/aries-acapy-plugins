@@ -86,9 +86,10 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         TODO: update this docstring - Anoncreds-break.
 
         """
-        self.substrate = SubstrateInterface(
-            url=url,
-        )
+        # self.substrate = SubstrateInterface(
+        #     url=url,
+        # )
+        self.url = url
         self.keypair = Keypair.create_from_uri("//Alice")
         self._supported_identifiers_regex = re.compile(r"^did:qmc.*$")
 
@@ -130,7 +131,11 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         """Get a schema from the registry."""
         LOGGER.info(f"Get schema. ID_SCHEMA: {schema_id}")
 
-        schema_json = self.substrate.query(
+        substrate = SubstrateInterface(
+            url=self.url,
+        )
+
+        schema_json = substrate.query(
             module="Did",
             storage_function="Schemas",
             params=[schema_id[8:]]
@@ -149,7 +154,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         }
 
         anonscreds_schema = AnonCredsSchema(
-            issuer_id=DID + schema["schema_id"],
+            issuer_id=DID + schema["issuer_id"],
             attr_names=schema["attr_names"],
             name=schema["name"],
             version=schema["version"],
@@ -182,18 +187,20 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             "version": schema.version,
             "ver": "1.0"
         }
-
-        call = self.substrate.compose_call(
+        substrate = SubstrateInterface(
+            url=self.url,
+        )
+        call = substrate.compose_call(
             call_module="Did",
             call_function="create_schema",
             call_params={
                 "schema": data
             }
         )
-        extrinsic = self.substrate.create_signed_extrinsic(call=call, keypair=self.keypair)
+        extrinsic = substrate.create_signed_extrinsic(call=call, keypair=self.keypair)
 
         try:
-            receipt = self.substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
+            receipt = substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
             LOGGER.info(
                 "Extrinsic '{}' sent and included in block '{}'".format(
                     receipt.extrinsic_hash, receipt.block_hash
@@ -218,8 +225,10 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     ) -> GetCredDefResult:
         """Get a credential definition from the registry."""
         LOGGER.info(f"Get credential definition. ID_cred_def: {credential_definition_id}")
-
-        cred_def_json = self.substrate.query(
+        substrate = SubstrateInterface(
+            url=self.url,
+        )
+        cred_def_json = substrate.query(
             module="Did",
             storage_function="CredentialDefinitions",
             params=[credential_definition_id[8:]]
@@ -302,18 +311,20 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         cred_def["value"]["primary"]["r"] = tmp
         if not "revocation" in cred_def["value"]:
             cred_def["value"]["revocation"] = None
-        
-        call = self.substrate.compose_call(
+        substrate = SubstrateInterface(
+            url=self.url,
+        )
+        call = substrate.compose_call(
             call_module="Did",
             call_function="create_credential_definition",
             call_params={
                 "cred_def": cred_def
             },
         )
-        extrinsic = self.substrate.create_signed_extrinsic(call=call, keypair=self.keypair)
+        extrinsic = substrate.create_signed_extrinsic(call=call, keypair=self.keypair)
 
         try:
-            receipt = self.substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
+            receipt = substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
             LOGGER.info(
                 "Extrinsic '{}' sent and included in block '{}'".format(
                     receipt.extrinsic_hash, receipt.block_hash
@@ -337,8 +348,10 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
     ) -> GetRevRegDefResult:
         """Get a revocation registry definition from the registry."""
         LOGGER.info(f"Get revocation registry definition. Id_rev_reg_def: {revocation_registry_id}")
-        
-        rev_reg_def_json = self.substrate.query(
+        substrate = SubstrateInterface(
+            url=self.url,
+        )
+        rev_reg_def_json = substrate.query(
             module="Did",
             storage_function="RevocationRegistryDefinitions",
             params=[revocation_registry_id[8:]]
@@ -406,17 +419,19 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         }
         tmp = str(rev_reg_def["value"]["public_keys"])
         rev_reg_def["value"]["public_keys"] = tmp
-       
-        call = self.substrate.compose_call(
+        substrate = SubstrateInterface(
+            url=self.url,
+        )
+        call = substrate.compose_call(
             call_module="Did",
             call_function="create_revocation_registry_definition",
             call_params={
                 "rev_reg_def": rev_reg_def
             },
         )
-        extrinsic = self.substrate.create_signed_extrinsic(call=call, keypair=self.keypair)
+        extrinsic = substrate.create_signed_extrinsic(call=call, keypair=self.keypair)
         try:
-            receipt = self.substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
+            receipt = substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
             print(
                 "Extrinsic '{}' sent and included in block '{}'".format(
                     receipt.extrinsic_hash, receipt.block_hash
@@ -471,17 +486,19 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         }
         if not "timestamp" in rev_list:
             rev_list["timestamp"] = None
-
-        call = self.substrate.compose_call(
+        substrate = SubstrateInterface(
+            url=self.url,
+        )
+        call = substrate.compose_call(
             call_module="Did",
             call_function="create_revocation_list",
             call_params={
                 "rev_list": rev_list
             },
         )
-        extrinsic = self.substrate.create_signed_extrinsic(call=call, keypair=self.keypair)
+        extrinsic = substrate.create_signed_extrinsic(call=call, keypair=self.keypair)
         try:
-            receipt = self.substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
+            receipt = substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
             LOGGER.info(
                 "Extrinsic '{}' sent and included in block '{}'".format(
                     receipt.extrinsic_hash, receipt.block_hash
