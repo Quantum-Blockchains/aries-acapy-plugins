@@ -239,6 +239,8 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
                 f"Credential definition not found: {credential_definition_id}"
             )
 
+        print("cred_def_json: ", cred_def_json)
+
         cred_def = {
             "id": cred_def_json.value["cred_def_id"],
             "schemaId": cred_def_json.value["schema_id"],
