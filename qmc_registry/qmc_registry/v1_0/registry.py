@@ -242,7 +242,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         print("cred_def_json: ", cred_def_json)
 
         cred_def = {
-            "id": cred_def_json.value["cred_def_id"],
+            "cred_def_id": cred_def_json.value["cred_def_id"],
             "schemaId": cred_def_json.value["schema_id"],
             "type": cred_def_json.value["ttype"],
             "tag": cred_def_json.value["tag"],
