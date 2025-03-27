@@ -239,7 +239,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
                 f"Credential definition not found: {credential_definition_id}"
             )
 
-        print("cred_def_json: ", cred_def_json)
+        # print("cred_def_json: ", cred_def_json)
 
         cred_def = {
             "cred_def_id": cred_def_json.value["cred_def_id"],
@@ -251,8 +251,8 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         }
         tmp = {}
         for i in cred_def["value"]["primary"]["r"]:
-            print(5)
-            print(i)
+            # print(5)
+            # print(i)
             tmp[i["name"]] = i["value"]
         cred_def["value"]["primary"]["r"] = tmp
         if cred_def["value"]["revocation"] is None:
