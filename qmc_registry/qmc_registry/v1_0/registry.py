@@ -473,8 +473,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         LOGGER.info(f"Register revocation list. Id_rev_reg_def: {rev_reg_def.cred_def_id}")
 
         options = options or {}
-
-        rev_list = {
+        rev_list_tmp = {
             "issuer_id": rev_list.issuer_id[8:],
             "rev_reg_def_id": rev_list.rev_reg_def_id[8:],
             "value": {
@@ -487,7 +486,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             "ver": "1.0"
         }
         if not "timestamp" in rev_list:
-            rev_list["timestamp"] = None
+            rev_list_tmp["timestamp"] = None
         substrate = SubstrateInterface(
             url=self.url,
         )
@@ -495,7 +494,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
             call_module="Did",
             call_function="create_revocation_list",
             call_params={
-                "rev_list": rev_list
+                "rev_list": rev_list_tmp
             },
         )
         extrinsic = substrate.create_signed_extrinsic(call=call, keypair=self.keypair)
@@ -515,7 +514,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
                 registration_metadata={},
                 revocation_list_metadata={},
             )
-            LOGGER.info(d)
+            # LOGGER.info(d)
             return d
         except SubstrateRequestException as e:
             LOGGER.info("Failed to send: {}".format(e))
