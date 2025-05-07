@@ -536,10 +536,7 @@ class QmcRegistry(BaseAnonCredsResolver, BaseAnonCredsRegistrar):
         self, profile: Profile, schema_id: str
     ) -> AnoncredsSchemaInfo:
         """Get a schema info from the registry."""
-        print("SCHEMA_ID: ", schema_id)
-
         schema_id_parts = re.match(r"^(.+?):2:([^:]+):([^:]+)$", schema_id)
-        print("schema_id_parts: ", schema_id_parts)
         return AnoncredsSchemaInfo(
             issuer_id=schema_id_parts.group(1),
             name=schema_id_parts.group(2),
