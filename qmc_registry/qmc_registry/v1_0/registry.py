@@ -66,7 +66,6 @@ from acapy_agent.anoncreds.models.revocation import ( # type: ignore
 from acapy_agent.anoncreds.models.schema import AnonCredsSchema, GetSchemaResult, SchemaResult  # type: ignore
 from acapy_agent.anoncreds.issuer import CATEGORY_CRED_DEF, AnonCredsIssuer, AnonCredsIssuerError # type: ignore
 import requests
-from .config import get_config
 from substrateinterface import SubstrateInterface, Keypair
 from substrateinterface.exceptions import SubstrateRequestException
 
